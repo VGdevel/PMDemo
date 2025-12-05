@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Dólar BCV - Registro de Pago</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        @media (min-width: 992px) {
+            .container {
+                flex-direction: row;
+            }
+            
+            .calculator-section {
+                flex: 1;
+            }
+            
+            .form-section {
+                flex: 1;
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .header h1 {
+            color: #1a5fb4;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e8e8e8;
+        }
+        
+        .card h2 {
+            color: #1a5fb4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f0fe;
+            font-size: 1.5rem;
+        }
+        
+        .exchange-rate {
+            background-color: #e8f0fe;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 5px solid #1a5fb4;
+        }
+        
+        .exchange-rate p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .rate-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1a5fb4;
+        }
+        
+        .calculator {
+            padding: 20px 0;
+        }
+        
+        .calculator label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .calculator input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            transition: border-color 0.3s;
+        }
+        
+        .calculator input:focus {
+            border-color: #1a5fb4;
+            outline: none;
+        }
+        
+        .result-box {
+            background-color: #f0f7ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px dashed #1a5fb4;
+        }
+        
+        .result-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .result-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #1a5fb4;
+        }
+        
+        .copy-btn {
+            background-color: #1a5fb4;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .copy-btn:hover {
+            background-color: #0d4a9c;
+        }
+        
+        .form-container {
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #888;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .close-btn:hover {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .form-group select, 
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group select:focus, 
+        .form-group input:focus {
+            border-color: #1a5fb4;
+            outline: none;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .submit-btn {
+            background-color: #1a5fb4;
+            color: white;
+            border: none;
+            padding: 17px 25px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            background-color: #0d4a9c;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-icon {
+            font-size: 4rem;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+        
+        .modal h3 {
+            color: #1a5fb4;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .modal-btn {
+            background-color: #1a5fb4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        
+        .modal-btn:hover {
+            background-color: #0d4a9c;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .timestamp {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .calculator-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .calculator-option {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .calculator-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .calculator-option.active {
+            border-color: #1a5fb4;
+            background-color: #e8f0fe;
+        }
+        
+        .calculator-option span {
+            font-weight: bold;
+            color: #1a5fb4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sección Calculadora -->
+        <div class="calculator-section">
+            <div class="header">
+                <h1><i class="fas fa-calculator"></i> Calculadora Dólar BCV</h1>
+                <p>Convierta dólares a bolívares al tipo de cambio oficial del BCV</p>
+            </div>
+            
+            <div class="card">
+                <h2>Valor del Dólar BCV</h2>
+                <p>Esta calculadora obtiene el tipo de cambio oficial del dólar estadounidense (USD) publicado por el Banco Central de Venezuela. El valor se actualiza automáticamente cada día.</p>
+                
+                <div class="exchange-rate">
+                    <p>Último tipo de cambio BCV:</p>
+                    <div class="rate-value">1 USD = <span id="exchange-rate">Bs. 254,870000</span></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Calculadora de Conversión</h2>
+                <div class="calculator">
+                    <label for="usd-amount">$ Monto a pagar en dólares (USD)</label>
+                    <input type="number" id="usd-amount" placeholder="Ingrese el monto en USD" min="0" step="0.01">
+                    
+                    <div class="calculator-options">
+                        <div class="calculator-option" data-amount="100">
+                            <span>100</span> USD
+                        </div>
+                        <div class="calculator-option" data-amount="50">
+                            <span>50</span> USD
+                        </div>
+                        <div class="calculator-option" data-amount="25">
+                            <span>25</span> USD
+                        </div>
+                        <div class="calculator-option" data-amount="10">
+                            <span>10</span> USD
+                        </div>
+                    </div>
+                    
+                    <p class="info-text">Tipo de cambio actual: <strong>Bs. 254,870000</strong> por 1 USD</p>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Su pago es de:</div>
+                        <div class="result-value" id="bs-amount">Bs. 0,00</div>
+                        <div class="info-text">Monto convertido con 2 decimales para transacciones</div>
+                    </div>
+                    
+                    <button class="copy-btn" id="copy-btn">
+                        <i class="far fa-copy"></i> Copiar Monto a Pagar
+                    </button>
+                    
+                    <div class="timestamp">
+                        Actualizado: <span id="update-date">05/12/2025, 06:53:14 a.m.</span> (desde API)
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección Formulario -->
+        <div class="form-section">
+            <div class="card form-container">
+                <button class="close-btn" id="close-form-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <h2>Registro de Pago Móvil</h2>
+                <p>Complete la siguiente información para registrar su pago móvil.</p>
+                
+                <form id="payment-form">
+                    <div class="form-group">
+                        <label for="bank">Banco de donde hace el pago móvil</label>
+                        <select id="bank" name="bank" required>
+                            <option value="">Seleccione un banco</option>
+                            <option value="Banesco">Banesco</option>
+                            <option value="Mercantil">Mercantil Banco</option>
+                            <option value="Provincial">Banco Provincial</option>
+                            <option value="Bancaribe">Bancaribe</option>
+                            <option value="Banco de Venezuela">Banco de Venezuela</option>
+                            <option value="Banco Exterior">Banco Exterior</option>
+                            <option value="Banco Plaza">Banco Plaza</option>
+                            <option value="Banco Occidental de Descuento">BOD</option>
+                            <option value="Banco del Tesoro">Banco del Tesoro</option>
+                            <option value="Banco Agrícola de Venezuela">Banco Agrícola</option>
+                            <option value="Bancrecer">Bancrecer</option>
+                            <option value="Banplus">Banplus</option>
+                            <option value="BFC Banco Fondo Común">BFC Banco Fondo Común</option>
+                            <option value="Bancamiga">Bancamiga</option>
+                            <option value="100% Banco">100% Banco</option>
+                            <option value="Banco Activo">Banco Activo</option>
+                            <option value="Bancar">Bancar</option>
+                            <option value="Banco Caroní">Banco Caroní</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                        <div class="error-message" id="bank-error">Por favor seleccione un banco</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cedula">Cédula de Identidad</label>
+                        <input type="text" id="cedula" name="cedula" placeholder="Ej: V12345678 o E87654321" required>
+                        <div class="error-message" id="cedula-error">La cédula debe comenzar con V o E seguido de números</div>
+                        <div class="info-text">Formato: V o E seguido de números (sin puntos ni comas)</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rif">RIF</label>
+                        <input type="text" id="rif" name="rif" placeholder="Ej: J-12345678-9 o V-98765432-1" required>
+                        <div class="error-message" id="rif-error">El RIF debe comenzar con J o V seguido de números y guiones</div>
+                        <div class="info-text">Formato: J o V seguido de números y guiones</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reference">Referencia del Pago Móvil</label>
+                        <input type="text" id="reference" name="reference" placeholder="Solo números, sin puntos ni comas" required>
+                        <div class="error-message" id="reference-error">La referencia debe contener solo números</div>
+                        <div class="info-text">Ingrese solo números, sin puntos ni comas</div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submit-btn">
+                        <i class="fas fa-check-circle"></i> Aceptar y Registrar
+                    </button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>Información Importante</h2>
+                <p><strong>Verifique sus datos:</strong> Asegúrese de que toda la información ingresada sea correcta antes de enviar.</p>
+                <p><strong>Datos seguros:</strong> La información se enviará de forma segura a nuestra base de datos.</p>
+                <p><strong>Confirmación:</strong> Al enviar el formulario, recibirá una confirmación de que su pago ha sido registrado.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmación -->
+    <div class="modal" id="confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>¡Pago Móvil Registrado!</h3>
+            <p>La información de su pago móvil ha sido guardada exitosamente en nuestro sistema.</p>
+            <p>¡Muchas gracias por completar el registro!</p>
+            <button class="modal-btn" id="close-modal-btn">Cerrar</button>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Calculadora Dólar BCV - Sistema de Registro de Pagos Móviles</p>
+        <p>© 2025 - Todos los derechos reservados</p>
+    </footer>
+    
+    <script>
+        // URL de tu Google Apps Script (REEMPLAZA ESTO CON TU PROPIA URL)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
+        
+        // Elementos DOM
+        const usdAmountInput = document.getElementById('usd-amount');
+        const bsAmountElement = document.getElementById('bs-amount');
+        const copyBtn = document.getElementById('copy-btn');
+        const exchangeRateElement = document.getElementById('exchange-rate');
+        const updateDateElement = document.getElementById('update-date');
+        const calculatorOptions = document.querySelectorAll('.calculator-option');
+        const closeFormBtn = document.getElementById('close-form-btn');
+        const paymentForm = document.getElementById('payment-form');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        // Elementos de error
+        const bankError = document.getElementById('bank-error');
+        const cedulaError = document.getElementById('cedula-error');
+        const rifError = document.getElementById('rif-error');
+        const referenceError = document.getElementById('reference-error');
+        
+        // Tipo de cambio
+        const exchangeRate = 254.87;
+        
+        // Función para formatear números con separadores de miles
+        function formatNumber(number) {
+            return number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,').replace('.', ',');
+        }
+        
+        // Función para calcular el monto en bolívares
+        function calculateBsAmount() {
+            const usdAmount = parseFloat(usdAmountInput.value) || 0;
+            const bsAmount = usdAmount * exchangeRate;
+            bsAmountElement.textContent = `Bs. ${formatNumber(bsAmount)}`;
+        }
+        
+        // Event listener para el input de USD
+        usdAmountInput.addEventListener('input', calculateBsAmount);
+        
+        // Event listeners para las opciones de calculadora
+        calculatorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remover clase active de todas las opciones
+                calculatorOptions.forEach(opt => opt.classList.remove('active'));
+                // Agregar clase active a la opción seleccionada
+                this.classList.add('active');
+                // Establecer el valor en el input
+                usdAmountInput.value = this.getAttribute('data-amount');
+                // Calcular el monto en bolívares
+                calculateBsAmount();
+            });
+        });
+        
+        // Función para copiar el monto a pagar
+        copyBtn.addEventListener('click', function() {
+            const bsAmountText = bsAmountElement.textContent.replace('Bs. ', '');
+            navigator.clipboard.writeText(bsAmountText)
+                .then(() => {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+                    copyBtn.style.backgroundColor = '#4caf50';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.backgroundColor = '';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Error al copiar: ', err);
+                });
+        });
+        
+        // Función para validar cédula
+        function validateCedula(cedula) {
+            const cedulaRegex = /^[VE]\d+$/;
+            return cedulaRegex.test(cedula);
+        }
+        
+        // Función para validar RIF
+        function validateRif(rif) {
+            const rifRegex = /^[JV]-\d+-\d$/;
+            return rifRegex.test(rif);
+        }
+        
+        // Función para validar referencia
+        function validateReference(reference) {
+            const referenceRegex = /^\d+$/;
+            return referenceRegex.test(reference);
+        }
+        
+        // Validación en tiempo real para cédula
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            const value = e.target.value.toUpperCase();
+            e.target.value = value;
+            
+            if (value === '') {
+                cedulaError.style.display = 'none';
+                return;
+            }
+            
+            if (!validateCedula(value)) {
+                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.style.display = 'block';
+            } else {
+                cedulaError.style.display = 'none';
+            }
+        });
+        
+        // Validación en tiempo real para RIF
+        document.getElementById('rif').addEventListener('input', function(e) {
+            const value = e.target.value.toUpperCase();
+            e.target.value = value;
+            
+            if (value === '') {
+                rifError.style.display = 'none';
+                return;
+            }
+            
+            if (!validateRif(value)) {
+                rifError.textContent = 'El RIF debe comenzar con J o V seguido de números y guiones (Ej: J-12345678-9)';
+                rifError.style.display = 'block';
+            } else {
+                rifError.style.display = 'none';
+            }
+        });
+        
+        // Validación en tiempo real para referencia
+        document.getElementById('reference').addEventListener('input', function(e) {
+            const value = e.target.value;
+            
+            if (value === '') {
+                referenceError.style.display = 'none';
+                return;
+            }
+            
+            if (!validateReference(value)) {
+                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+                referenceError.style.display = 'block';
+            } else {
+                referenceError.style.display = 'none';
+            }
+        });
+        
+        // Validación del banco
+        document.getElementById('bank').addEventListener('change', function(e) {
+            if (e.target.value === '') {
+                bankError.style.display = 'block';
+            } else {
+                bankError.style.display = 'none';
+            }
+        });
+        
+        // Cerrar formulario
+        closeFormBtn.addEventListener('click', function() {
+            if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
+                paymentForm.reset();
+                // Aquí podrías redirigir o hacer otra acción
+                alert('Formulario cerrado. Puede volver a abrirlo recargando la página.');
+            }
+        });
+        
+        // Cerrar modal
+        closeModalBtn.addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+            paymentForm.reset();
+        });
+        
+        // Enviar formulario a Google Sheets
+        paymentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validar todos los campos antes de enviar
+            const bank = document.getElementById('bank').value;
+            const cedula = document.getElementById('cedula').value;
+            const rif = document.getElementById('rif').value;
+            const reference = document.getElementById('reference').value;
+            
+            let isValid = true;
+            
+            // Validar banco
+            if (bank === '') {
+                bankError.style.display = 'block';
+                isValid = false;
+            } else {
+                bankError.style.display = 'none';
+            }
+            
+            // Validar cédula
+            if (!validateCedula(cedula)) {
+                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.style.display = 'block';
+                isValid = false;
+            } else {
+                cedulaError.style.display = 'none';
+            }
+            
+            // Validar RIF
+            if (!validateRif(rif)) {
+                rifError.textContent = 'El RIF debe comenzar con J o V seguido de números y guiones (Ej: J-12345678-9)';
+                rifError.style.display = 'block';
+                isValid = false;
+            } else {
+                rifError.style.display = 'none';
+            }
+            
+            // Validar referencia
+            if (!validateReference(reference)) {
+                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+                referenceError.style.display = 'block';
+                isValid = false;
+            } else {
+                referenceError.style.display = 'none';
+            }
+            
+            if (!isValid) {
+                alert('Por favor corrija los errores en el formulario antes de enviar.');
+                return;
+            }
+            
+            // Deshabilitar botón de envío
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            
+            // Preparar datos para enviar
+            const formData = {
+                banco: bank,
+                cedula: cedula,
+                rif: rif,
+                referencia: reference
+            };
+            
+            // Enviar datos a Google Sheets
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Modo no-cors para evitar problemas con CORS
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(() => {
+                // Mostrar modal de confirmación
+                confirmationModal.style.display = 'flex';
+                
+                // Restablecer botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hubo un error al enviar el formulario. Por favor intente nuevamente.');
+                
+                // Restablecer botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
+            });
+        });
+        
+        // Inicializar la calculadora con un valor por defecto
+        usdAmountInput.value = '100';
+        calculateBsAmount();
+        calculatorOptions[0].classList.add('active');
+        
+        // Actualizar fecha y hora
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            };
+            const formattedDate = now.toLocaleDateString('es-ES', options);
+            updateDateElement.textContent = formattedDate;
+        }
+        
+        updateDateTime();
+        // Actualizar la fecha cada minuto
+        setInterval(updateDateTime, 60000);
+    </script>
+</body>
+</html>
