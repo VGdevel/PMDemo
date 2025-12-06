@@ -317,6 +317,32 @@
                 font-size: 1.1rem;
             }
         }
+        
+        /* Estilos para mensajes de error */
+        .error-modal {
+            display: none;
+        }
+        
+        .error-modal .modal-icon {
+            color: #d32f2f;
+        }
+        
+        .error-modal h3 {
+            color: #d32f2f;
+        }
+        
+        .debug-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #666;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -411,6 +437,9 @@
                 <p><strong><i class="fas fa-info-circle"></i> Información:</strong> Todos los campos marcados con * son obligatorios.</p>
                 <p>Sus datos serán guardados de forma segura en nuestro sistema.</p>
             </div>
+            
+            <!-- Información de depuración (oculta por defecto) -->
+            <div class="debug-info" id="debug-info"></div>
         </div>
         
         <footer>
@@ -432,16 +461,32 @@
         </div>
     </div>
     
+    <!-- Modal de error -->
+    <div class="modal error-modal" id="error-modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3>Error al Registrar</h3>
+            <p id="error-message">Hubo un problema al enviar los datos. Por favor intente nuevamente.</p>
+            <button class="modal-btn" id="close-error-modal-btn">Cerrar</button>
+        </div>
+    </div>
+    
     <script>
-        // URL de tu Google Apps Script (REEMPLAZA ESTO CON TU PROPIA URL)
+        // IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
         
         // Elementos DOM
         const closeFormBtn = document.getElementById('close-form-btn');
         const paymentForm = document.getElementById('payment-form');
         const confirmationModal = document.getElementById('confirmation-modal');
+        const errorModal = document.getElementById('error-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
+        const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
         const submitBtn = document.getElementById('submit-btn');
+        const errorMessageElement = document.getElementById('error-message');
+        const debugInfo = document.getElementById('debug-info');
         
         // Elementos de error
         const bankError = document.getElementById('bank-error');
@@ -512,18 +557,33 @@
             } else {
                 amountError.style.display = 'none';
             }
+            
+            // Resaltar visualmente la opción seleccionada
+            const amountOptions = document.querySelectorAll('.amount-option');
+            const selectedText = this.options[this.selectedIndex].text;
+            const selectedType = selectedText.split('(')[0].trim();
+            
+            amountOptions.forEach(option => {
+                const optionType = option.querySelector('.amount-type').textContent;
+                if (optionType === selectedType) {
+                    option.style.backgroundColor = '#e8f0fe';
+                    option.style.fontWeight = '600';
+                } else {
+                    option.style.backgroundColor = '#f8f9fa';
+                    option.style.fontWeight = 'normal';
+                }
+            });
         });
         
         // Cerrar formulario
         closeFormBtn.addEventListener('click', function() {
             if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
                 paymentForm.reset();
-                // Aquí podrías redirigir o hacer otra acción
                 alert('Formulario cerrado. Puede volver a abrirlo recargando la página.');
             }
         });
         
-        // Cerrar modal
+        // Cerrar modal de éxito
         closeModalBtn.addEventListener('click', function() {
             confirmationModal.style.display = 'none';
             paymentForm.reset();
@@ -533,17 +593,31 @@
             cedulaError.style.display = 'none';
             referenceError.style.display = 'none';
             amountError.style.display = 'none';
+            
+            // Resetear resaltado de montos
+            const amountOptions = document.querySelectorAll('.amount-option');
+            amountOptions.forEach(option => {
+                option.style.backgroundColor = '#f8f9fa';
+                option.style.fontWeight = 'normal';
+            });
+        });
+        
+        // Cerrar modal de error
+        closeErrorModalBtn.addEventListener('click', function() {
+            errorModal.style.display = 'none';
         });
         
         // Enviar formulario a Google Sheets
-        paymentForm.addEventListener('submit', function(e) {
+        paymentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validar todos los campos antes de enviar
             const bank = document.getElementById('bank').value;
             const cedula = document.getElementById('cedula').value;
             const reference = document.getElementById('reference').value;
-            const amount = document.getElementById('amount').value;
+            const amountSelect = document.getElementById('amount');
+            const amountValue = amountSelect.value;
+            const amountText = amountSelect.options[amountSelect.selectedIndex].text;
             
             let isValid = true;
             
@@ -574,7 +648,7 @@
             }
             
             // Validar monto
-            if (amount === '') {
+            if (amountValue === '') {
                 amountError.style.display = 'block';
                 isValid = false;
             } else {
@@ -582,7 +656,15 @@
             }
             
             if (!isValid) {
-                alert('Por favor corrija los errores en el formulario antes de enviar.');
+                errorMessageElement.textContent = 'Por favor corrija los errores en el formulario antes de enviar.';
+                errorModal.style.display = 'flex';
+                return;
+            }
+            
+            // Verificar que la URL de Google Script esté configurada
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+                errorMessageElement.textContent = 'Error: La URL de Google Apps Script no está configurada correctamente. Por favor contacte al administrador.';
+                errorModal.style.display = 'flex';
                 return;
             }
             
@@ -590,71 +672,98 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             
-            // Obtener el texto completo del monto seleccionado
-            const amountText = document.getElementById('amount').options[document.getElementById('amount').selectedIndex].text;
-            
             // Preparar datos para enviar
             const formData = {
                 banco: bank,
                 cedula: cedula,
                 referencia: reference,
-                monto: amountText, // Enviar el texto completo (ej: "Pasaje corto (40 Bs)")
-                monto_valor: amount // Enviar también el valor numérico
+                monto: amountText, // Texto completo: "Pasaje corto (40 Bs)"
+                monto_valor: amountValue // Solo el valor: "40"
             };
             
-            // Enviar datos a Google Sheets
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Modo no-cors para evitar problemas con CORS
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(() => {
+            // Mostrar información de depuración
+            debugInfo.style.display = 'block';
+            debugInfo.innerHTML = `
+                <strong>Datos a enviar:</strong><br>
+                ${JSON.stringify(formData, null, 2)}<br><br>
+                <strong>URL de destino:</strong><br>
+                ${GOOGLE_SCRIPT_URL.substring(0, 50)}...<br><br>
+                <strong>Hora de envío:</strong><br>
+                ${new Date().toLocaleString()}
+            `;
+            
+            try {
+                // Enviar datos a Google Sheets usando fetch con timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+                
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Importante: usar 'no-cors' para Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                // Con 'no-cors' no podemos leer la respuesta, pero asumimos éxito
                 // Mostrar modal de confirmación
                 confirmationModal.style.display = 'flex';
                 
+                // Agregar información al debug
+                debugInfo.innerHTML += `<br><br><strong>Resultado:</strong> Datos enviados correctamente`;
+                
+            } catch (error) {
+                console.error('Error al enviar:', error);
+                
+                // Determinar tipo de error
+                let errorMsg = 'Hubo un error al enviar el formulario. ';
+                
+                if (error.name === 'AbortError') {
+                    errorMsg += 'El servidor tardó demasiado en responder. ';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMsg += 'No se pudo conectar con el servidor. ';
+                } else {
+                    errorMsg += 'Error técnico: ' + error.message;
+                }
+                
+                errorMsg += 'Por favor intente nuevamente.';
+                
+                errorMessageElement.textContent = errorMsg;
+                errorModal.style.display = 'flex';
+                
+                // Agregar información al debug
+                debugInfo.innerHTML += `<br><br><strong>Error:</strong> ${error.message}`;
+            } finally {
                 // Restablecer botón
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Hubo un error al enviar el formulario. Por favor intente nuevamente.');
-                
-                // Restablecer botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
-            });
-        });
-        
-        // Mejorar la experiencia de usuario: mostrar el monto seleccionado
-        document.getElementById('amount').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                // Resaltar visualmente la opción seleccionada
-                const amountOptions = document.querySelectorAll('.amount-option');
-                amountOptions.forEach(option => {
-                    option.style.backgroundColor = '#f8f9fa';
-                    option.style.fontWeight = 'normal';
-                });
-                
-                // Encontrar y resaltar la opción correspondiente
-                const amountType = selectedOption.text.split('(')[0].trim();
-                amountOptions.forEach(option => {
-                    if (option.querySelector('.amount-type').textContent === amountType) {
-                        option.style.backgroundColor = '#e8f0fe';
-                        option.style.fontWeight = '600';
-                    }
-                });
             }
         });
         
-        // Inicializar: resaltar la primera opción si hay una seleccionada por defecto
+        // Inicializar: resaltar la opción si hay una seleccionada
         const initialAmount = document.getElementById('amount').value;
         if (initialAmount) {
             document.getElementById('amount').dispatchEvent(new Event('change'));
+        }
+        
+        // Mostrar advertencia si la URL no está configurada
+        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+            console.warn("ADVERTENCIA: La URL de Google Apps Script no está configurada.");
+            debugInfo.style.display = 'block';
+            debugInfo.innerHTML = `
+                <strong style="color: #d32f2f;">ADVERTENCIA IMPORTANTE:</strong><br>
+                La URL de Google Apps Script no está configurada.<br><br>
+                <strong>Pasos para configurar:</strong><br>
+                1. Sigue las instrucciones para crear el Google Apps Script<br>
+                2. Copia la URL de despliegue<br>
+                3. Pega la URL en la constante GOOGLE_SCRIPT_URL (línea 172 del código)<br><br>
+                <strong>URL actual:</strong><br>
+                ${GOOGLE_SCRIPT_URL}
+            `;
         }
     </script>
 </body>
