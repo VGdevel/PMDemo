@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Dólar BCV - Registro de Pago</title>
+    <title>Registro de Pago Móvil</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -14,156 +14,77 @@
         }
         
         body {
-            background-color: #f5f7fa;
+            background: linear-gradient(135deg, #0C1B5A 0%, #19378A 100%);
             color: #333;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         .container {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.8s ease-out;
         }
         
-        @media (min-width: 992px) {
-            .container {
-                flex-direction: row;
-            }
-            
-            .calculator-section {
-                flex: 1;
-            }
-            
-            .form-section {
-                flex: 1;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 25px;
+            color: white;
         }
         
         .header h1 {
-            color: #1a5fb4;
             font-size: 2.2rem;
             margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .header p {
-            color: #666;
             font-size: 1.1rem;
+            opacity: 0.9;
         }
         
         .card {
             background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid #e8e8e8;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #0C1B5A 0%, #19378A 100%);
         }
         
         .card h2 {
-            color: #1a5fb4;
+            color: #0C1B5A;
             margin-bottom: 20px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 2px solid #e8f0fe;
-            font-size: 1.5rem;
-        }
-        
-        .exchange-rate {
-            background-color: #e8f0fe;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            border-left: 5px solid #1a5fb4;
-        }
-        
-        .exchange-rate p {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        
-        .rate-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #1a5fb4;
-        }
-        
-        .calculator {
-            padding: 20px 0;
-        }
-        
-        .calculator label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #444;
-        }
-        
-        .calculator input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            transition: border-color 0.3s;
-        }
-        
-        .calculator input:focus {
-            border-color: #1a5fb4;
-            outline: none;
-        }
-        
-        .result-box {
-            background-color: #f0f7ff;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: center;
-            border: 1px dashed #1a5fb4;
-        }
-        
-        .result-label {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        
-        .result-value {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: #1a5fb4;
-        }
-        
-        .copy-btn {
-            background-color: #1a5fb4;
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-            font-weight: 600;
+            font-size: 1.6rem;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
         }
         
-        .copy-btn:hover {
-            background-color: #0d4a9c;
+        .card h2 i {
+            color: #19378A;
         }
         
         .form-container {
@@ -172,8 +93,8 @@
         
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             background: none;
             border: none;
             font-size: 1.5rem;
@@ -185,7 +106,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            z-index: 10;
         }
         
         .close-btn:hover {
@@ -202,22 +124,26 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #444;
+            font-size: 1rem;
         }
         
         .form-group select, 
         .form-group input {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1.1rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
         }
         
         .form-group select:focus, 
         .form-group input:focus {
-            border-color: #1a5fb4;
+            border-color: #19378A;
             outline: none;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(25, 55, 138, 0.1);
         }
         
         .error-message {
@@ -228,87 +154,38 @@
         }
         
         .submit-btn {
-            background-color: #1a5fb4;
+            background: linear-gradient(90deg, #0C1B5A 0%, #19378A 100%);
             color: white;
             border: none;
-            padding: 17px 25px;
-            border-radius: 8px;
+            padding: 18px 25px;
+            border-radius: 10px;
             font-size: 1.2rem;
             cursor: pointer;
             width: 100%;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
             font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin-top: 10px;
+            letter-spacing: 0.5px;
         }
         
         .submit-btn:hover {
-            background-color: #0d4a9c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(12, 27, 90, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
         }
         
         .submit-btn:disabled {
-            background-color: #cccccc;
+            background: #cccccc;
             cursor: not-allowed;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-icon {
-            font-size: 4rem;
-            color: #4caf50;
-            margin-bottom: 20px;
-        }
-        
-        .modal h3 {
-            color: #1a5fb4;
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-        }
-        
-        .modal p {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }
-        
-        .modal-btn {
-            background-color: #1a5fb4;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-weight: 600;
-        }
-        
-        .modal-btn:hover {
-            background-color: #0d4a9c;
+            transform: none;
+            box-shadow: none;
         }
         
         .info-text {
@@ -318,187 +195,228 @@
             font-style: italic;
         }
         
-        .timestamp {
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
             text-align: center;
-            color: #888;
-            font-size: 0.9rem;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .modal-icon {
+            font-size: 4rem;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+        
+        .modal h3 {
+            color: #0C1B5A;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        
+        .modal-btn {
+            background: linear-gradient(90deg, #0C1B5A 0%, #19378A 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(12, 27, 90, 0.3);
+        }
+        
+        .amount-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 5px;
+            border-left: 4px solid #19378A;
+        }
+        
+        .amount-type {
+            font-weight: 600;
+            color: #0C1B5A;
+        }
+        
+        .amount-value {
+            font-weight: bold;
+            color: #19378A;
+            font-size: 1.1rem;
         }
         
         footer {
             text-align: center;
-            margin-top: 40px;
+            margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-            color: #888;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
         }
         
-        .calculator-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+        .required::after {
+            content: " *";
+            color: #d32f2f;
         }
         
-        .calculator-option {
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s;
+        /* Estilos para el select personalizado */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230C1B5A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            padding-right: 50px;
         }
         
-        .calculator-option:hover {
-            background-color: #e9ecef;
-        }
-        
-        .calculator-option.active {
-            border-color: #1a5fb4;
-            background-color: #e8f0fe;
-        }
-        
-        .calculator-option span {
-            font-weight: bold;
-            color: #1a5fb4;
+        /* Responsive */
+        @media (max-width: 576px) {
+            .card {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .submit-btn {
+                padding: 16px 20px;
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sección Calculadora -->
-        <div class="calculator-section">
-            <div class="header">
-                <h1><i class="fas fa-calculator"></i> Calculadora Dólar BCV</h1>
-                <p>Convierta dólares a bolívares al tipo de cambio oficial del BCV</p>
-            </div>
+        <div class="header">
+            <h1><i class="fas fa-mobile-alt"></i> Registro de Pago Móvil</h1>
+            <p>Complete el formulario para registrar su pago</p>
+        </div>
+        
+        <div class="card form-container">
+            <button class="close-btn" id="close-form-btn">
+                <i class="fas fa-times"></i>
+            </button>
             
-            <div class="card">
-                <h2>Valor del Dólar BCV</h2>
-                <p>Esta calculadora obtiene el tipo de cambio oficial del dólar estadounidense (USD) publicado por el Banco Central de Venezuela. El valor se actualiza automáticamente cada día.</p>
+            <h2><i class="fas fa-file-alt"></i> Datos del Pago</h2>
+            <p>Complete la siguiente información para registrar su pago móvil.</p>
+            
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="bank" class="required">Banco de origen del pago</label>
+                    <select id="bank" name="bank" required>
+                        <option value="">Seleccione su banco</option>
+                        <option value="Banesco">Banesco</option>
+                        <option value="Mercantil">Mercantil Banco</option>
+                        <option value="Provincial">Banco Provincial</option>
+                        <option value="Bancaribe">Bancaribe</option>
+                        <option value="Banco de Venezuela">Banco de Venezuela</option>
+                        <option value="Banco Exterior">Banco Exterior</option>
+                        <option value="Banco Plaza">Banco Plaza</option>
+                        <option value="Banco Occidental de Descuento">BOD</option>
+                        <option value="Banco del Tesoro">Banco del Tesoro</option>
+                        <option value="Banco Agrícola de Venezuela">Banco Agrícola</option>
+                        <option value="Bancrecer">Bancrecer</option>
+                        <option value="Banplus">Banplus</option>
+                        <option value="BFC Banco Fondo Común">BFC Banco Fondo Común</option>
+                        <option value="Bancamiga">Bancamiga</option>
+                        <option value="100% Banco">100% Banco</option>
+                        <option value="Banco Activo">Banco Activo</option>
+                        <option value="Bancar">Bancar</option>
+                        <option value="Banco Caroní">Banco Caroní</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                    <div class="error-message" id="bank-error">Por favor seleccione un banco</div>
+                </div>
                 
-                <div class="exchange-rate">
-                    <p>Último tipo de cambio BCV:</p>
-                    <div class="rate-value">1 USD = <span id="exchange-rate">Bs. 254,870000</span></div>
+                <div class="form-group">
+                    <label for="cedula" class="required">Cédula de Identidad</label>
+                    <input type="text" id="cedula" name="cedula" placeholder="Ej: V12345678 o E87654321" required>
+                    <div class="error-message" id="cedula-error">La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)</div>
+                    <div class="info-text">Formato: V o E seguido de números (sin puntos ni comas)</div>
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label for="reference" class="required">Referencia del Pago Móvil</label>
+                    <input type="text" id="reference" name="reference" placeholder="Solo números, sin puntos ni comas" required>
+                    <div class="error-message" id="reference-error">La referencia debe contener solo números (sin puntos ni comas)</div>
+                    <div class="info-text">Ingrese solo números, sin puntos ni comas</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount" class="required">Monto cancelado</label>
+                    <select id="amount" name="amount" required>
+                        <option value="">Seleccione el tipo de pasaje</option>
+                        <option value="40">Pasaje corto (40 Bs)</option>
+                        <option value="50">Pasaje intermedio (50 Bs)</option>
+                        <option value="60">Pasaje largo (60 Bs)</option>
+                    </select>
+                    <div class="error-message" id="amount-error">Por favor seleccione el tipo de pasaje</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div class="amount-option">
+                            <span class="amount-type">Pasaje corto</span>
+                            <span class="amount-value">40 Bs</span>
+                        </div>
+                        <div class="amount-option">
+                            <span class="amount-type">Pasaje intermedio</span>
+                            <span class="amount-value">50 Bs</span>
+                        </div>
+                        <div class="amount-option">
+                            <span class="amount-type">Pasaje largo</span>
+                            <span class="amount-value">60 Bs</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <i class="fas fa-check-circle"></i> Aceptar y Registrar
+                </button>
+            </form>
             
-            <div class="card">
-                <h2>Calculadora de Conversión</h2>
-                <div class="calculator">
-                    <label for="usd-amount">$ Monto a pagar en dólares (USD)</label>
-                    <input type="number" id="usd-amount" placeholder="Ingrese el monto en USD" min="0" step="0.01">
-                    
-                    <div class="calculator-options">
-                        <div class="calculator-option" data-amount="100">
-                            <span>100</span> USD
-                        </div>
-                        <div class="calculator-option" data-amount="50">
-                            <span>50</span> USD
-                        </div>
-                        <div class="calculator-option" data-amount="25">
-                            <span>25</span> USD
-                        </div>
-                        <div class="calculator-option" data-amount="10">
-                            <span>10</span> USD
-                        </div>
-                    </div>
-                    
-                    <p class="info-text">Tipo de cambio actual: <strong>Bs. 254,870000</strong> por 1 USD</p>
-                    
-                    <div class="result-box">
-                        <div class="result-label">Su pago es de:</div>
-                        <div class="result-value" id="bs-amount">Bs. 0,00</div>
-                        <div class="info-text">Monto convertido con 2 decimales para transacciones</div>
-                    </div>
-                    
-                    <button class="copy-btn" id="copy-btn">
-                        <i class="far fa-copy"></i> Copiar Monto a Pagar
-                    </button>
-                    
-                    <div class="timestamp">
-                        Actualizado: <span id="update-date">05/12/2025, 06:53:14 a.m.</span> (desde API)
-                    </div>
-                </div>
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 0.9rem;">
+                <p><strong><i class="fas fa-info-circle"></i> Información:</strong> Todos los campos marcados con * son obligatorios.</p>
+                <p>Sus datos serán guardados de forma segura en nuestro sistema.</p>
             </div>
         </div>
         
-        <!-- Sección Formulario -->
-        <div class="form-section">
-            <div class="card form-container">
-                <button class="close-btn" id="close-form-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                
-                <h2>Registro de Pago Móvil</h2>
-                <p>Complete la siguiente información para registrar su pago móvil.</p>
-                
-                <form id="payment-form">
-                    <div class="form-group">
-                        <label for="bank">Banco de donde hace el pago móvil</label>
-                        <select id="bank" name="bank" required>
-                            <option value="">Seleccione un banco</option>
-                            <option value="Banesco">Banesco</option>
-                            <option value="Mercantil">Mercantil Banco</option>
-                            <option value="Provincial">Banco Provincial</option>
-                            <option value="Bancaribe">Bancaribe</option>
-                            <option value="Banco de Venezuela">Banco de Venezuela</option>
-                            <option value="Banco Exterior">Banco Exterior</option>
-                            <option value="Banco Plaza">Banco Plaza</option>
-                            <option value="Banco Occidental de Descuento">BOD</option>
-                            <option value="Banco del Tesoro">Banco del Tesoro</option>
-                            <option value="Banco Agrícola de Venezuela">Banco Agrícola</option>
-                            <option value="Bancrecer">Bancrecer</option>
-                            <option value="Banplus">Banplus</option>
-                            <option value="BFC Banco Fondo Común">BFC Banco Fondo Común</option>
-                            <option value="Bancamiga">Bancamiga</option>
-                            <option value="100% Banco">100% Banco</option>
-                            <option value="Banco Activo">Banco Activo</option>
-                            <option value="Bancar">Bancar</option>
-                            <option value="Banco Caroní">Banco Caroní</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                        <div class="error-message" id="bank-error">Por favor seleccione un banco</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cedula">Cédula de Identidad</label>
-                        <input type="text" id="cedula" name="cedula" placeholder="Ej: V12345678 o E87654321" required>
-                        <div class="error-message" id="cedula-error">La cédula debe comenzar con V o E seguido de números</div>
-                        <div class="info-text">Formato: V o E seguido de números (sin puntos ni comas)</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="rif">RIF</label>
-                        <input type="text" id="rif" name="rif" placeholder="Ej: J-12345678-9 o V-98765432-1" required>
-                        <div class="error-message" id="rif-error">El RIF debe comenzar con J o V seguido de números y guiones</div>
-                        <div class="info-text">Formato: J o V seguido de números y guiones</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="reference">Referencia del Pago Móvil</label>
-                        <input type="text" id="reference" name="reference" placeholder="Solo números, sin puntos ni comas" required>
-                        <div class="error-message" id="reference-error">La referencia debe contener solo números</div>
-                        <div class="info-text">Ingrese solo números, sin puntos ni comas</div>
-                    </div>
-                    
-                    <button type="submit" class="submit-btn" id="submit-btn">
-                        <i class="fas fa-check-circle"></i> Aceptar y Registrar
-                    </button>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>Información Importante</h2>
-                <p><strong>Verifique sus datos:</strong> Asegúrese de que toda la información ingresada sea correcta antes de enviar.</p>
-                <p><strong>Datos seguros:</strong> La información se enviará de forma segura a nuestra base de datos.</p>
-                <p><strong>Confirmación:</strong> Al enviar el formulario, recibirá una confirmación de que su pago ha sido registrado.</p>
-            </div>
-        </div>
+        <footer>
+            <p>Sistema de Registro de Pagos Móviles</p>
+            <p>© 2025 - Todos los derechos reservados</p>
+        </footer>
     </div>
     
     <!-- Modal de confirmación -->
@@ -514,22 +432,11 @@
         </div>
     </div>
     
-    <footer>
-        <p>Calculadora Dólar BCV - Sistema de Registro de Pagos Móviles</p>
-        <p>© 2025 - Todos los derechos reservados</p>
-    </footer>
-    
     <script>
         // URL de tu Google Apps Script (REEMPLAZA ESTO CON TU PROPIA URL)
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
         
         // Elementos DOM
-        const usdAmountInput = document.getElementById('usd-amount');
-        const bsAmountElement = document.getElementById('bs-amount');
-        const copyBtn = document.getElementById('copy-btn');
-        const exchangeRateElement = document.getElementById('exchange-rate');
-        const updateDateElement = document.getElementById('update-date');
-        const calculatorOptions = document.querySelectorAll('.calculator-option');
         const closeFormBtn = document.getElementById('close-form-btn');
         const paymentForm = document.getElementById('payment-form');
         const confirmationModal = document.getElementById('confirmation-modal');
@@ -539,70 +446,13 @@
         // Elementos de error
         const bankError = document.getElementById('bank-error');
         const cedulaError = document.getElementById('cedula-error');
-        const rifError = document.getElementById('rif-error');
         const referenceError = document.getElementById('reference-error');
-        
-        // Tipo de cambio
-        const exchangeRate = 254.87;
-        
-        // Función para formatear números con separadores de miles
-        function formatNumber(number) {
-            return number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,').replace('.', ',');
-        }
-        
-        // Función para calcular el monto en bolívares
-        function calculateBsAmount() {
-            const usdAmount = parseFloat(usdAmountInput.value) || 0;
-            const bsAmount = usdAmount * exchangeRate;
-            bsAmountElement.textContent = `Bs. ${formatNumber(bsAmount)}`;
-        }
-        
-        // Event listener para el input de USD
-        usdAmountInput.addEventListener('input', calculateBsAmount);
-        
-        // Event listeners para las opciones de calculadora
-        calculatorOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // Remover clase active de todas las opciones
-                calculatorOptions.forEach(opt => opt.classList.remove('active'));
-                // Agregar clase active a la opción seleccionada
-                this.classList.add('active');
-                // Establecer el valor en el input
-                usdAmountInput.value = this.getAttribute('data-amount');
-                // Calcular el monto en bolívares
-                calculateBsAmount();
-            });
-        });
-        
-        // Función para copiar el monto a pagar
-        copyBtn.addEventListener('click', function() {
-            const bsAmountText = bsAmountElement.textContent.replace('Bs. ', '');
-            navigator.clipboard.writeText(bsAmountText)
-                .then(() => {
-                    const originalText = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
-                    copyBtn.style.backgroundColor = '#4caf50';
-                    
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalText;
-                        copyBtn.style.backgroundColor = '';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Error al copiar: ', err);
-                });
-        });
+        const amountError = document.getElementById('amount-error');
         
         // Función para validar cédula
         function validateCedula(cedula) {
             const cedulaRegex = /^[VE]\d+$/;
             return cedulaRegex.test(cedula);
-        }
-        
-        // Función para validar RIF
-        function validateRif(rif) {
-            const rifRegex = /^[JV]-\d+-\d$/;
-            return rifRegex.test(rif);
         }
         
         // Función para validar referencia
@@ -626,24 +476,6 @@
                 cedulaError.style.display = 'block';
             } else {
                 cedulaError.style.display = 'none';
-            }
-        });
-        
-        // Validación en tiempo real para RIF
-        document.getElementById('rif').addEventListener('input', function(e) {
-            const value = e.target.value.toUpperCase();
-            e.target.value = value;
-            
-            if (value === '') {
-                rifError.style.display = 'none';
-                return;
-            }
-            
-            if (!validateRif(value)) {
-                rifError.textContent = 'El RIF debe comenzar con J o V seguido de números y guiones (Ej: J-12345678-9)';
-                rifError.style.display = 'block';
-            } else {
-                rifError.style.display = 'none';
             }
         });
         
@@ -673,6 +505,15 @@
             }
         });
         
+        // Validación del monto
+        document.getElementById('amount').addEventListener('change', function(e) {
+            if (e.target.value === '') {
+                amountError.style.display = 'block';
+            } else {
+                amountError.style.display = 'none';
+            }
+        });
+        
         // Cerrar formulario
         closeFormBtn.addEventListener('click', function() {
             if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
@@ -686,6 +527,12 @@
         closeModalBtn.addEventListener('click', function() {
             confirmationModal.style.display = 'none';
             paymentForm.reset();
+            
+            // Resetear todos los errores
+            bankError.style.display = 'none';
+            cedulaError.style.display = 'none';
+            referenceError.style.display = 'none';
+            amountError.style.display = 'none';
         });
         
         // Enviar formulario a Google Sheets
@@ -695,8 +542,8 @@
             // Validar todos los campos antes de enviar
             const bank = document.getElementById('bank').value;
             const cedula = document.getElementById('cedula').value;
-            const rif = document.getElementById('rif').value;
             const reference = document.getElementById('reference').value;
+            const amount = document.getElementById('amount').value;
             
             let isValid = true;
             
@@ -717,15 +564,6 @@
                 cedulaError.style.display = 'none';
             }
             
-            // Validar RIF
-            if (!validateRif(rif)) {
-                rifError.textContent = 'El RIF debe comenzar con J o V seguido de números y guiones (Ej: J-12345678-9)';
-                rifError.style.display = 'block';
-                isValid = false;
-            } else {
-                rifError.style.display = 'none';
-            }
-            
             // Validar referencia
             if (!validateReference(reference)) {
                 referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
@@ -733,6 +571,14 @@
                 isValid = false;
             } else {
                 referenceError.style.display = 'none';
+            }
+            
+            // Validar monto
+            if (amount === '') {
+                amountError.style.display = 'block';
+                isValid = false;
+            } else {
+                amountError.style.display = 'none';
             }
             
             if (!isValid) {
@@ -744,12 +590,16 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             
+            // Obtener el texto completo del monto seleccionado
+            const amountText = document.getElementById('amount').options[document.getElementById('amount').selectedIndex].text;
+            
             // Preparar datos para enviar
             const formData = {
                 banco: bank,
                 cedula: cedula,
-                rif: rif,
-                referencia: reference
+                referencia: reference,
+                monto: amountText, // Enviar el texto completo (ej: "Pasaje corto (40 Bs)")
+                monto_valor: amount // Enviar también el valor numérico
             };
             
             // Enviar datos a Google Sheets
@@ -779,30 +629,33 @@
             });
         });
         
-        // Inicializar la calculadora con un valor por defecto
-        usdAmountInput.value = '100';
-        calculateBsAmount();
-        calculatorOptions[0].classList.add('active');
+        // Mejorar la experiencia de usuario: mostrar el monto seleccionado
+        document.getElementById('amount').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                // Resaltar visualmente la opción seleccionada
+                const amountOptions = document.querySelectorAll('.amount-option');
+                amountOptions.forEach(option => {
+                    option.style.backgroundColor = '#f8f9fa';
+                    option.style.fontWeight = 'normal';
+                });
+                
+                // Encontrar y resaltar la opción correspondiente
+                const amountType = selectedOption.text.split('(')[0].trim();
+                amountOptions.forEach(option => {
+                    if (option.querySelector('.amount-type').textContent === amountType) {
+                        option.style.backgroundColor = '#e8f0fe';
+                        option.style.fontWeight = '600';
+                    }
+                });
+            }
+        });
         
-        // Actualizar fecha y hora
-        function updateDateTime() {
-            const now = new Date();
-            const options = { 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true 
-            };
-            const formattedDate = now.toLocaleDateString('es-ES', options);
-            updateDateElement.textContent = formattedDate;
+        // Inicializar: resaltar la primera opción si hay una seleccionada por defecto
+        const initialAmount = document.getElementById('amount').value;
+        if (initialAmount) {
+            document.getElementById('amount').dispatchEvent(new Event('change'));
         }
-        
-        updateDateTime();
-        // Actualizar la fecha cada minuto
-        setInterval(updateDateTime, 60000);
     </script>
 </body>
 </html>
