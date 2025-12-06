@@ -473,298 +473,318 @@
         </div>
     </div>
     
-    <script>
-        // IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
+<script>
+    // IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
+    
+    // Elementos DOM
+    const closeFormBtn = document.getElementById('close-form-btn');
+    const paymentForm = document.getElementById('payment-form');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const errorModal = document.getElementById('error-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMessageElement = document.getElementById('error-message');
+    const debugInfo = document.getElementById('debug-info');
+    
+    // Elementos de error
+    const bankError = document.getElementById('bank-error');
+    const cedulaError = document.getElementById('cedula-error');
+    const referenceError = document.getElementById('reference-error');
+    const amountError = document.getElementById('amount-error');
+    
+    // Función para validar cédula
+    function validateCedula(cedula) {
+        const cedulaRegex = /^[VE]\d+$/;
+        return cedulaRegex.test(cedula);
+    }
+    
+    // Función para validar referencia
+    function validateReference(reference) {
+        const referenceRegex = /^\d+$/;
+        return referenceRegex.test(reference);
+    }
+    
+    // Validación en tiempo real para cédula
+    document.getElementById('cedula').addEventListener('input', function(e) {
+        const value = e.target.value.toUpperCase();
+        e.target.value = value;
         
-        // Elementos DOM
-        const closeFormBtn = document.getElementById('close-form-btn');
-        const paymentForm = document.getElementById('payment-form');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const errorModal = document.getElementById('error-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const errorMessageElement = document.getElementById('error-message');
-        const debugInfo = document.getElementById('debug-info');
-        
-        // Elementos de error
-        const bankError = document.getElementById('bank-error');
-        const cedulaError = document.getElementById('cedula-error');
-        const referenceError = document.getElementById('reference-error');
-        const amountError = document.getElementById('amount-error');
-        
-        // Función para validar cédula
-        function validateCedula(cedula) {
-            const cedulaRegex = /^[VE]\d+$/;
-            return cedulaRegex.test(cedula);
-        }
-        
-        // Función para validar referencia
-        function validateReference(reference) {
-            const referenceRegex = /^\d+$/;
-            return referenceRegex.test(reference);
-        }
-        
-        // Validación en tiempo real para cédula
-        document.getElementById('cedula').addEventListener('input', function(e) {
-            const value = e.target.value.toUpperCase();
-            e.target.value = value;
-            
-            if (value === '') {
-                cedulaError.style.display = 'none';
-                return;
-            }
-            
-            if (!validateCedula(value)) {
-                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
-                cedulaError.style.display = 'block';
-            } else {
-                cedulaError.style.display = 'none';
-            }
-        });
-        
-        // Validación en tiempo real para referencia
-        document.getElementById('reference').addEventListener('input', function(e) {
-            const value = e.target.value;
-            
-            if (value === '') {
-                referenceError.style.display = 'none';
-                return;
-            }
-            
-            if (!validateReference(value)) {
-                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
-                referenceError.style.display = 'block';
-            } else {
-                referenceError.style.display = 'none';
-            }
-        });
-        
-        // Validación del banco
-        document.getElementById('bank').addEventListener('change', function(e) {
-            if (e.target.value === '') {
-                bankError.style.display = 'block';
-            } else {
-                bankError.style.display = 'none';
-            }
-        });
-        
-        // Validación del monto
-        document.getElementById('amount').addEventListener('change', function(e) {
-            if (e.target.value === '') {
-                amountError.style.display = 'block';
-            } else {
-                amountError.style.display = 'none';
-            }
-            
-            // Resaltar visualmente la opción seleccionada
-            const amountOptions = document.querySelectorAll('.amount-option');
-            const selectedText = this.options[this.selectedIndex].text;
-            const selectedType = selectedText.split('(')[0].trim();
-            
-            amountOptions.forEach(option => {
-                const optionType = option.querySelector('.amount-type').textContent;
-                if (optionType === selectedType) {
-                    option.style.backgroundColor = '#e8f0fe';
-                    option.style.fontWeight = '600';
-                } else {
-                    option.style.backgroundColor = '#f8f9fa';
-                    option.style.fontWeight = 'normal';
-                }
-            });
-        });
-        
-        // Cerrar formulario
-        closeFormBtn.addEventListener('click', function() {
-            if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
-                paymentForm.reset();
-                alert('Formulario cerrado. Puede volver a abrirlo recargando la página.');
-            }
-        });
-        
-        // Cerrar modal de éxito
-        closeModalBtn.addEventListener('click', function() {
-            confirmationModal.style.display = 'none';
-            paymentForm.reset();
-            
-            // Resetear todos los errores
-            bankError.style.display = 'none';
+        if (value === '') {
             cedulaError.style.display = 'none';
+            return;
+        }
+        
+        if (!validateCedula(value)) {
+            cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+            cedulaError.style.display = 'block';
+        } else {
+            cedulaError.style.display = 'none';
+        }
+    });
+    
+    // Validación en tiempo real para referencia
+    document.getElementById('reference').addEventListener('input', function(e) {
+        const value = e.target.value;
+        
+        if (value === '') {
             referenceError.style.display = 'none';
+            return;
+        }
+        
+        if (!validateReference(value)) {
+            referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+            referenceError.style.display = 'block';
+        } else {
+            referenceError.style.display = 'none';
+        }
+    });
+    
+    // Validación del banco
+    document.getElementById('bank').addEventListener('change', function(e) {
+        if (e.target.value === '') {
+            bankError.style.display = 'block';
+        } else {
+            bankError.style.display = 'none';
+        }
+    });
+    
+    // Validación del monto
+    document.getElementById('amount').addEventListener('change', function(e) {
+        if (e.target.value === '') {
+            amountError.style.display = 'block';
+        } else {
             amountError.style.display = 'none';
-            
-            // Resetear resaltado de montos
-            const amountOptions = document.querySelectorAll('.amount-option');
-            amountOptions.forEach(option => {
+        }
+        
+        // Resaltar visualmente la opción seleccionada
+        const amountOptions = document.querySelectorAll('.amount-option');
+        const selectedText = this.options[this.selectedIndex].text;
+        const selectedType = selectedText.split('(')[0].trim();
+        
+        amountOptions.forEach(option => {
+            const optionType = option.querySelector('.amount-type').textContent;
+            if (optionType === selectedType) {
+                option.style.backgroundColor = '#e8f0fe';
+                option.style.fontWeight = '600';
+            } else {
                 option.style.backgroundColor = '#f8f9fa';
                 option.style.fontWeight = 'normal';
-            });
-        });
-        
-        // Cerrar modal de error
-        closeErrorModalBtn.addEventListener('click', function() {
-            errorModal.style.display = 'none';
-        });
-        
-        // Enviar formulario a Google Sheets
-        paymentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Validar todos los campos antes de enviar
-            const bank = document.getElementById('bank').value;
-            const cedula = document.getElementById('cedula').value;
-            const reference = document.getElementById('reference').value;
-            const amountSelect = document.getElementById('amount');
-            const amountValue = amountSelect.value;
-            const amountText = amountSelect.options[amountSelect.selectedIndex].text;
-            
-            let isValid = true;
-            
-            // Validar banco
-            if (bank === '') {
-                bankError.style.display = 'block';
-                isValid = false;
-            } else {
-                bankError.style.display = 'none';
-            }
-            
-            // Validar cédula
-            if (!validateCedula(cedula)) {
-                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
-                cedulaError.style.display = 'block';
-                isValid = false;
-            } else {
-                cedulaError.style.display = 'none';
-            }
-            
-            // Validar referencia
-            if (!validateReference(reference)) {
-                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
-                referenceError.style.display = 'block';
-                isValid = false;
-            } else {
-                referenceError.style.display = 'none';
-            }
-            
-            // Validar monto
-            if (amountValue === '') {
-                amountError.style.display = 'block';
-                isValid = false;
-            } else {
-                amountError.style.display = 'none';
-            }
-            
-            if (!isValid) {
-                errorMessageElement.textContent = 'Por favor corrija los errores en el formulario antes de enviar.';
-                errorModal.style.display = 'flex';
-                return;
-            }
-            
-            // Verificar que la URL de Google Script esté configurada
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
-                errorMessageElement.textContent = 'Error: La URL de Google Apps Script no está configurada correctamente. Por favor contacte al administrador.';
-                errorModal.style.display = 'flex';
-                return;
-            }
-            
-            // Deshabilitar botón de envío
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            
-            // Preparar datos para enviar
-            const formData = {
-                banco: bank,
-                cedula: cedula,
-                referencia: reference,
-                monto: amountText, // Texto completo: "Pasaje corto (40 Bs)"
-                monto_valor: amountValue // Solo el valor: "40"
-            };
-            
-            // Mostrar información de depuración
-            debugInfo.style.display = 'block';
-            debugInfo.innerHTML = `
-                <strong>Datos a enviar:</strong><br>
-                ${JSON.stringify(formData, null, 2)}<br><br>
-                <strong>URL de destino:</strong><br>
-                ${GOOGLE_SCRIPT_URL.substring(0, 50)}...<br><br>
-                <strong>Hora de envío:</strong><br>
-                ${new Date().toLocaleString()}
-            `;
-            
-            try {
-                // Enviar datos a Google Sheets usando fetch con timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
-                
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Importante: usar 'no-cors' para Google Apps Script
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                // Con 'no-cors' no podemos leer la respuesta, pero asumimos éxito
-                // Mostrar modal de confirmación
-                confirmationModal.style.display = 'flex';
-                
-                // Agregar información al debug
-                debugInfo.innerHTML += `<br><br><strong>Resultado:</strong> Datos enviados correctamente`;
-                
-            } catch (error) {
-                console.error('Error al enviar:', error);
-                
-                // Determinar tipo de error
-                let errorMsg = 'Hubo un error al enviar el formulario. ';
-                
-                if (error.name === 'AbortError') {
-                    errorMsg += 'El servidor tardó demasiado en responder. ';
-                } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg += 'No se pudo conectar con el servidor. ';
-                } else {
-                    errorMsg += 'Error técnico: ' + error.message;
-                }
-                
-                errorMsg += 'Por favor intente nuevamente.';
-                
-                errorMessageElement.textContent = errorMsg;
-                errorModal.style.display = 'flex';
-                
-                // Agregar información al debug
-                debugInfo.innerHTML += `<br><br><strong>Error:</strong> ${error.message}`;
-            } finally {
-                // Restablecer botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
             }
         });
+    });
+    
+    // Cerrar formulario
+    closeFormBtn.addEventListener('click', function() {
+        if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
+            paymentForm.reset();
+            alert('Formulario cerrado. Puede volver a abrirlo recargando la página.');
+        }
+    });
+    
+    // Cerrar modal de éxito
+    closeModalBtn.addEventListener('click', function() {
+        confirmationModal.style.display = 'none';
+        paymentForm.reset();
         
-        // Inicializar: resaltar la opción si hay una seleccionada
-        const initialAmount = document.getElementById('amount').value;
-        if (initialAmount) {
-            document.getElementById('amount').dispatchEvent(new Event('change'));
+        // Resetear todos los errores
+        bankError.style.display = 'none';
+        cedulaError.style.display = 'none';
+        referenceError.style.display = 'none';
+        amountError.style.display = 'none';
+        
+        // Resetear resaltado de montos
+        const amountOptions = document.querySelectorAll('.amount-option');
+        amountOptions.forEach(option => {
+            option.style.backgroundColor = '#f8f9fa';
+            option.style.fontWeight = 'normal';
+        });
+    });
+    
+    // Cerrar modal de error
+    closeErrorModalBtn.addEventListener('click', function() {
+        errorModal.style.display = 'none';
+    });
+    
+    // Enviar formulario a Google Sheets
+    paymentForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validar todos los campos antes de enviar
+        const bank = document.getElementById('bank').value;
+        const cedula = document.getElementById('cedula').value;
+        const reference = document.getElementById('reference').value;
+        const amountSelect = document.getElementById('amount');
+        const amountValue = amountSelect.value;
+        const amountText = amountSelect.options[amountSelect.selectedIndex].text;
+        
+        console.log("Datos capturados del formulario:");
+        console.log("- Banco:", bank);
+        console.log("- Cédula:", cedula);
+        console.log("- Referencia:", reference);
+        console.log("- Valor del monto:", amountValue);
+        console.log("- Texto del monto:", amountText);
+        
+        let isValid = true;
+        
+        // Validar banco
+        if (bank === '') {
+            bankError.style.display = 'block';
+            isValid = false;
+        } else {
+            bankError.style.display = 'none';
         }
         
-        // Mostrar advertencia si la URL no está configurada
+        // Validar cédula
+        if (!validateCedula(cedula)) {
+            cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+            cedulaError.style.display = 'block';
+            isValid = false;
+        } else {
+            cedulaError.style.display = 'none';
+        }
+        
+        // Validar referencia
+        if (!validateReference(reference)) {
+            referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+            referenceError.style.display = 'block';
+            isValid = false;
+        } else {
+            referenceError.style.display = 'none';
+        }
+        
+        // Validar monto
+        if (amountValue === '') {
+            amountError.style.display = 'block';
+            isValid = false;
+        } else {
+            amountError.style.display = 'none';
+        }
+        
+        if (!isValid) {
+            errorMessageElement.textContent = 'Por favor corrija los errores en el formulario antes de enviar.';
+            errorModal.style.display = 'flex';
+            return;
+        }
+        
+        // Verificar que la URL de Google Script esté configurada
         if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
-            console.warn("ADVERTENCIA: La URL de Google Apps Script no está configurada.");
-            debugInfo.style.display = 'block';
-            debugInfo.innerHTML = `
-                <strong style="color: #d32f2f;">ADVERTENCIA IMPORTANTE:</strong><br>
-                La URL de Google Apps Script no está configurada.<br><br>
-                <strong>Pasos para configurar:</strong><br>
-                1. Sigue las instrucciones para crear el Google Apps Script<br>
-                2. Copia la URL de despliegue<br>
-                3. Pega la URL en la constante GOOGLE_SCRIPT_URL (línea 172 del código)<br><br>
-                <strong>URL actual:</strong><br>
-                ${GOOGLE_SCRIPT_URL}
-            `;
+            errorMessageElement.textContent = 'Error: La URL de Google Apps Script no está configurada correctamente. Por favor contacte al administrador.';
+            errorModal.style.display = 'flex';
+            return;
         }
-    </script>
+        
+        // Deshabilitar botón de envío
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        
+        // Preparar datos para enviar - PRUEBA CON DIFERENTES NOMBRES DE CAMPOS
+        const formData = {
+            banco: bank,
+            cedula: cedula,
+            referencia: reference,
+            monto: amountText, // Texto completo: "Pasaje corto (40 Bs)"
+            monto_valor: amountValue, // Solo el valor: "40"
+            // También enviar con otros nombres por si acaso
+            amount: amountValue,
+            amountText: amountText,
+            monto_texto: amountText
+        };
+        
+        // Mostrar información de depuración
+        debugInfo.style.display = 'block';
+        debugInfo.innerHTML = `
+            <strong>Datos a enviar:</strong><br>
+            <pre>${JSON.stringify(formData, null, 2)}</pre><br>
+            <strong>URL de destino:</strong><br>
+            ${GOOGLE_SCRIPT_URL}<br><br>
+            <strong>Hora de envío:</strong><br>
+            ${new Date().toLocaleString()}
+        `;
+        
+        console.log("Datos a enviar a Google Sheets:", formData);
+        
+        try {
+            // Enviar datos a Google Sheets usando fetch con timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos timeout
+            
+            // Usar try-catch para capturar errores de red
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Importante: usar 'no-cors' para Google Apps Script
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            // Con 'no-cors' no podemos leer la respuesta, pero asumimos éxito
+            console.log("Datos enviados exitosamente");
+            
+            // Mostrar modal de confirmación
+            confirmationModal.style.display = 'flex';
+            
+            // Agregar información al debug
+            debugInfo.innerHTML += `<br><br><strong>Resultado:</strong> Datos enviados correctamente a ${new Date().toLocaleString()}`;
+            
+        } catch (error) {
+            console.error('Error al enviar:', error);
+            
+            // Determinar tipo de error
+            let errorMsg = 'Hubo un error al enviar el formulario. ';
+            
+            if (error.name === 'AbortError') {
+                errorMsg += 'El servidor tardó demasiado en responder. ';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMsg += 'No se pudo conectar con el servidor. ';
+            } else {
+                errorMsg += 'Error técnico: ' + error.message;
+            }
+            
+            errorMsg += 'Por favor intente nuevamente.';
+            
+            errorMessageElement.textContent = errorMsg;
+            errorModal.style.display = 'flex';
+            
+            // Agregar información al debug
+            debugInfo.innerHTML += `<br><br><strong>Error:</strong> ${error.message}`;
+        } finally {
+            // Restablecer botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
+        }
+    });
+    
+    // Inicializar: resaltar la opción si hay una seleccionada
+    const initialAmount = document.getElementById('amount').value;
+    if (initialAmount) {
+        document.getElementById('amount').dispatchEvent(new Event('change'));
+    }
+    
+    // Mostrar advertencia si la URL no está configurada
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+        console.warn("ADVERTENCIA: La URL de Google Apps Script no está configurada.");
+        debugInfo.style.display = 'block';
+        debugInfo.innerHTML = `
+            <strong style="color: #d32f2f;">ADVERTENCIA IMPORTANTE:</strong><br>
+            La URL de Google Apps Script no está configurada.<br><br>
+            <strong>Pasos para configurar:</strong><br>
+            1. Sigue las instrucciones para crear el Google Apps Script<br>
+            2. Copia la URL de despliegue<br>
+            3. Pega la URL en la constante GOOGLE_SCRIPT_URL (línea 172 del código)<br><br>
+            <strong>URL actual:</strong><br>
+            ${GOOGLE_SCRIPT_URL}
+        `;
+    }
+    
+    // Habilitar consola para depuración
+    console.log("Formulario de pago cargado correctamente");
+    console.log("URL configurada:", GOOGLE_SCRIPT_URL ? "Sí" : "No");
+</script>
 </body>
 </html>
