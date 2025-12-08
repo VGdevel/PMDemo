@@ -265,6 +265,12 @@
             background-color: #f8f9fa;
             margin-bottom: 5px;
             border-left: 4px solid #19378A;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .amount-option:hover {
+            background-color: #e8f0fe;
         }
         
         .amount-type {
@@ -302,7 +308,7 @@
             padding-right: 50px;
         }
         
-        /* Loading spinner - MODIFICADO: inicialmente oculto */
+        /* Loading spinner */
         .loading-spinner {
             display: none;
             text-align: center;
@@ -323,6 +329,34 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        /* Debug panel */
+        .debug-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            border-left: 4px solid #19378A;
+        }
+        
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+        
+        .debug-toggle:hover {
+            color: #19378A;
         }
         
         /* Responsive */
@@ -370,13 +404,13 @@
             <h2><i class="fas fa-file-alt"></i> Datos del Pago</h2>
             <p>Complete la siguiente información para registrar su pago móvil.</p>
             
-            <!-- Loading spinner (inicialmente oculto) -->
+            <!-- Loading spinner -->
             <div class="loading-spinner" id="loading-spinner">
                 <div class="spinner"></div>
                 <p>Cargando configuración de pasajes...</p>
             </div>
             
-            <!-- FORMULARIO VISIBLE POR DEFECTO -->
+            <!-- Formulario -->
             <form id="payment-form">
                 <div class="form-group">
                     <label for="bank" class="required">Banco de origen del pago</label>
@@ -429,7 +463,6 @@
                 <div class="form-group">
                     <label for="amount" class="required">Monto cancelado</label>
                     <select id="amount" name="amount" required>
-                        <!-- Las opciones se cargarán dinámicamente -->
                         <option value="">Cargando tipos de pasaje...</option>
                     </select>
                     <div class="error-message" id="amount-error">Por favor seleccione el tipo de pasaje</div>
@@ -437,12 +470,22 @@
                     <div id="amount-options-container" style="margin-top: 15px;">
                         <!-- Las opciones de monto se cargarán aquí dinámicamente -->
                     </div>
+                    
+                    <button type="button" class="debug-toggle" id="refresh-config-btn">
+                        <i class="fas fa-sync-alt"></i> Recargar configuración
+                    </button>
                 </div>
                 
                 <button type="submit" class="submit-btn" id="submit-btn">
                     <i class="fas fa-check-circle"></i> Aceptar y Registrar
                 </button>
             </form>
+            
+            <!-- Panel de depuración -->
+            <button class="debug-toggle" id="toggle-debug-btn">Mostrar/Ocultar información de depuración</button>
+            <div class="debug-panel" id="debug-panel">
+                <pre id="debug-content">Esperando datos...</pre>
+            </div>
             
             <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 0.9rem;">
                 <p><strong><i class="fas fa-info-circle"></i> Información:</strong> Todos los campos marcados con * son obligatorios.</p>
@@ -497,6 +540,10 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const amountSelect = document.getElementById('amount');
         const amountOptionsContainer = document.getElementById('amount-options-container');
+        const refreshConfigBtn = document.getElementById('refresh-config-btn');
+        const toggleDebugBtn = document.getElementById('toggle-debug-btn');
+        const debugPanel = document.getElementById('debug-panel');
+        const debugContent = document.getElementById('debug-content');
         
         // Elementos de error
         const bankError = document.getElementById('bank-error');
@@ -506,36 +553,65 @@
         
         // Variables globales
         let pasajesConfig = [];
+        let debugLog = [];
         
-        // Función para cargar configuración desde Google Sheets (se ejecuta después de cargar la página)
-        async function cargarConfiguracion() {
+        // Función para agregar mensaje al log de depuración
+        function addDebugLog(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            if (data) {
+                debugLog.push(`${logEntry}\n${JSON.stringify(data, null, 2)}`);
+            } else {
+                debugLog.push(logEntry);
+            }
+            
+            // Mantener solo los últimos 20 logs
+            if (debugLog.length > 20) {
+                debugLog.shift();
+            }
+            
+            // Actualizar contenido del panel
+            debugContent.textContent = debugLog.join('\n\n');
+        }
+        
+        // Función para cargar configuración desde Google Sheets
+        async function cargarConfiguracion(forceReload = false) {
             try {
-                // Mostrar spinner en el campo de monto
+                addDebugLog(`Iniciando carga de configuración (force: ${forceReload})`);
+                
+                // Mostrar spinner
+                loadingSpinner.style.display = 'block';
+                amountSelect.disabled = true;
                 amountSelect.innerHTML = '<option value="">Cargando tipos de pasaje...</option>';
                 amountOptionsContainer.innerHTML = '<p style="color: #666; font-style: italic;">Cargando opciones de pasaje...</p>';
                 
-                // Mostrar spinner general
-                loadingSpinner.style.display = 'block';
-                
                 // Obtener configuración desde Google Apps Script
                 const configUrl = `${GOOGLE_SCRIPT_URL}?action=config&t=${Date.now()}`;
+                addDebugLog(`Solicitando URL: ${configUrl}`);
+                
                 const response = await fetch(configUrl);
+                addDebugLog(`Respuesta recibida - Status: ${response.status}`);
                 
                 if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
+                    throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
                 }
                 
                 const data = await response.json();
+                addDebugLog('Datos de configuración recibidos:', data);
                 
                 if (data.success && data.config && data.config.pasajes) {
                     pasajesConfig = data.config.pasajes;
+                    addDebugLog(`Pasajes cargados: ${pasajesConfig.length}`);
                     actualizarOpcionesDePasajes();
                 } else {
-                    throw new Error('Formato de configuración inválido');
+                    throw new Error(`Formato de configuración inválido: ${data.error || 'Sin detalles'}`);
                 }
                 
             } catch (error) {
                 console.error('Error cargando configuración:', error);
+                addDebugLog('ERROR cargando configuración:', { error: error.message });
+                
                 // Usar valores por defecto si hay error
                 pasajesConfig = [
                     { valor: "40", texto: "Pasaje corto (40 Bs)" },
@@ -544,17 +620,21 @@
                 ];
                 actualizarOpcionesDePasajes();
                 
-                // Mostrar mensaje de advertencia en consola
-                console.warn('Usando configuración por defecto debido a error:', error.message);
+                // Mostrar mensaje de advertencia
+                errorMessageElement.textContent = `Configuración cargada con valores por defecto: ${error.message}`;
+                errorModal.style.display = 'flex';
                 
             } finally {
                 // Ocultar spinner
                 loadingSpinner.style.display = 'none';
+                amountSelect.disabled = false;
             }
         }
         
         // Función para actualizar las opciones de pasajes en el formulario
         function actualizarOpcionesDePasajes() {
+            addDebugLog(`Actualizando opciones de pasajes. Total: ${pasajesConfig.length}`);
+            
             // Limpiar opciones actuales
             amountSelect.innerHTML = '<option value="">Seleccione el tipo de pasaje</option>';
             amountOptionsContainer.innerHTML = '';
@@ -563,14 +643,16 @@
             if (!pasajesConfig || pasajesConfig.length === 0) {
                 amountSelect.innerHTML = '<option value="">No hay tipos de pasaje configurados</option>';
                 amountOptionsContainer.innerHTML = '<p style="color: #d32f2f; font-style: italic;">Error: No hay tipos de pasaje configurados</p>';
+                addDebugLog('ERROR: No hay pasajes configurados');
                 return;
             }
             
             // Agregar nuevas opciones
-            pasajesConfig.forEach(pasaje => {
+            pasajesConfig.forEach((pasaje, index) => {
                 // Validar que el pasaje tenga los datos necesarios
                 if (!pasaje.valor || !pasaje.texto) {
                     console.warn('Pasaje inválido:', pasaje);
+                    addDebugLog(`Pasaje inválido en índice ${index}:`, pasaje);
                     return;
                 }
                 
@@ -584,8 +666,7 @@
                 const amountOption = document.createElement('div');
                 amountOption.className = 'amount-option';
                 amountOption.dataset.value = pasaje.valor;
-                amountOption.style.cursor = 'pointer';
-                amountOption.title = 'Haz clic para seleccionar';
+                amountOption.title = `Haz clic para seleccionar: ${pasaje.texto}`;
                 
                 const amountType = document.createElement('span');
                 amountType.className = 'amount-type';
@@ -608,25 +689,36 @@
                 amountOption.appendChild(amountType);
                 amountOption.appendChild(amountValue);
                 amountOptionsContainer.appendChild(amountOption);
+                
+                addDebugLog(`Pasaje agregado: ${pasaje.valor} - ${pasaje.texto}`);
             });
             
             // Agregar event listener para resaltar selección
             agregarEventListenersPasajes();
             
-            // Seleccionar la primera opción por defecto
+            // Seleccionar la primera opción por defecto si hay opciones
             if (pasajesConfig.length > 0) {
                 setTimeout(() => {
                     amountSelect.value = pasajesConfig[0].valor;
                     amountSelect.dispatchEvent(new Event('change'));
+                    addDebugLog(`Selección por defecto: ${pasajesConfig[0].valor}`);
                 }, 100);
             }
+            
+            addDebugLog('Opciones de pasaje actualizadas exitosamente');
         }
         
         // Función para agregar event listeners a las opciones de pasaje
         function agregarEventListenersPasajes() {
+            // Limpiar event listeners anteriores
+            const newAmountSelect = amountSelect.cloneNode(true);
+            amountSelect.parentNode.replaceChild(newAmountSelect, amountSelect);
+            amountSelect = newAmountSelect;
+            
             // Cuando se selecciona una opción en el select
             amountSelect.addEventListener('change', function(e) {
                 const selectedValue = e.target.value;
+                addDebugLog(`Selección cambiada: ${selectedValue}`);
                 
                 if (selectedValue === '') {
                     amountError.style.display = 'block';
@@ -654,6 +746,7 @@
             document.querySelectorAll('.amount-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const value = this.dataset.value;
+                    addDebugLog(`Opción clickeada: ${value}`);
                     amountSelect.value = value;
                     amountSelect.dispatchEvent(new Event('change'));
                 });
@@ -674,6 +767,8 @@
         
         // Inicializar formulario
         function inicializarFormulario() {
+            addDebugLog('Inicializando formulario...');
+            
             // Configurar valores por defecto mientras se carga la configuración
             pasajesConfig = [
                 { valor: "40", texto: "Pasaje corto (40 Bs)" },
@@ -681,6 +776,17 @@
                 { valor: "60", texto: "Pasaje largo (60 Bs)" }
             ];
             actualizarOpcionesDePasajes();
+            
+            // Botón para recargar configuración
+            refreshConfigBtn.addEventListener('click', function() {
+                addDebugLog('Recargando configuración manualmente...');
+                cargarConfiguracion(true);
+            });
+            
+            // Botón para mostrar/ocultar depuración
+            toggleDebugBtn.addEventListener('click', function() {
+                debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+            });
             
             // Validación en tiempo real para cédula
             document.getElementById('cedula').addEventListener('input', function(e) {
@@ -839,6 +945,8 @@
                     monto_valor: amountValue
                 };
                 
+                addDebugLog('Enviando datos del formulario:', formData);
+                
                 try {
                     // Enviar datos a Google Sheets
                     await fetch(GOOGLE_SCRIPT_URL, {
@@ -850,11 +958,14 @@
                         body: JSON.stringify(formData)
                     });
                     
+                    addDebugLog('Datos enviados exitosamente');
+                    
                     // Mostrar modal de confirmación
                     confirmationModal.style.display = 'flex';
                     
                 } catch (error) {
                     console.error('Error al enviar:', error);
+                    addDebugLog('ERROR al enviar datos:', { error: error.message });
                     
                     // Determinar tipo de error
                     let errorMsg = 'Hubo un error al enviar el formulario. ';
@@ -878,18 +989,28 @@
                     submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
                 }
             });
+            
+            addDebugLog('Formulario inicializado exitosamente');
         }
         
         // Cuando la página se carga completamente
         document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('Página cargada');
+            addDebugLog(`URL de script: ${GOOGLE_SCRIPT_URL}`);
+            
             // 1. Inicializar el formulario con valores por defecto
             inicializarFormulario();
             
             // 2. Intentar cargar configuración dinámica
             if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+                addDebugLog('Iniciando carga de configuración...');
                 cargarConfiguracion();
             } else {
-                console.warn('URL de Google Apps Script no configurada. Usando valores por defecto.');
+                const errorMsg = 'URL de Google Apps Script no configurada. Usando valores por defecto.';
+                console.warn(errorMsg);
+                addDebugLog('ERROR: ' + errorMsg);
+                errorMessageElement.textContent = errorMsg;
+                errorModal.style.display = 'flex';
             }
         });
     </script>
