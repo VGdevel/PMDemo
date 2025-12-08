@@ -302,6 +302,29 @@
             padding-right: 50px;
         }
         
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #19378A;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* Responsive */
         @media (max-width: 576px) {
             .card {
@@ -347,7 +370,13 @@
             <h2><i class="fas fa-file-alt"></i> Datos del Pago</h2>
             <p>Complete la siguiente información para registrar su pago móvil.</p>
             
-            <form id="payment-form">
+            <!-- Loading spinner mientras carga la configuración -->
+            <div class="loading-spinner" id="loading-spinner">
+                <div class="spinner"></div>
+                <p>Cargando configuración...</p>
+            </div>
+            
+            <form id="payment-form" style="display: none;">
                 <div class="form-group">
                     <label for="bank" class="required">Banco de origen del pago</label>
                     <select id="bank" name="bank" required>
@@ -399,26 +428,12 @@
                 <div class="form-group">
                     <label for="amount" class="required">Monto cancelado</label>
                     <select id="amount" name="amount" required>
-                        <option value="">Seleccione el tipo de pasaje</option>
-                        <option value="40">Pasaje corto (40 Bs)</option>
-                        <option value="50">Pasaje intermedio (50 Bs)</option>
-                        <option value="60">Pasaje largo (60 Bs)</option>
+                        <option value="">Cargando tipos de pasaje...</option>
                     </select>
                     <div class="error-message" id="amount-error">Por favor seleccione el tipo de pasaje</div>
                     
-                    <div style="margin-top: 15px;">
-                        <div class="amount-option">
-                            <span class="amount-type">Pasaje corto</span>
-                            <span class="amount-value">40 Bs</span>
-                        </div>
-                        <div class="amount-option">
-                            <span class="amount-type">Pasaje intermedio</span>
-                            <span class="amount-value">50 Bs</span>
-                        </div>
-                        <div class="amount-option">
-                            <span class="amount-type">Pasaje largo</span>
-                            <span class="amount-value">60 Bs</span>
-                        </div>
+                    <div id="amount-options-container" style="margin-top: 15px;">
+                        <!-- Las opciones de monto se cargarán aquí dinámicamente -->
                     </div>
                 </div>
                 
@@ -477,12 +492,141 @@
         const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
         const submitBtn = document.getElementById('submit-btn');
         const errorMessageElement = document.getElementById('error-message');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const amountSelect = document.getElementById('amount');
+        const amountOptionsContainer = document.getElementById('amount-options-container');
         
         // Elementos de error
         const bankError = document.getElementById('bank-error');
         const cedulaError = document.getElementById('cedula-error');
         const referenceError = document.getElementById('reference-error');
         const amountError = document.getElementById('amount-error');
+        
+        // Variables globales
+        let pasajesConfig = [];
+        
+        // Función para cargar configuración desde Google Sheets
+        async function cargarConfiguracion() {
+            try {
+                // Mostrar spinner
+                loadingSpinner.style.display = 'block';
+                
+                // Obtener configuración desde Google Apps Script
+                const configUrl = `${GOOGLE_SCRIPT_URL}?action=config&t=${Date.now()}`;
+                const response = await fetch(configUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.config && data.config.pasajes) {
+                    pasajesConfig = data.config.pasajes;
+                    actualizarOpcionesDePasajes();
+                } else {
+                    throw new Error('Formato de configuración inválido');
+                }
+                
+            } catch (error) {
+                console.error('Error cargando configuración:', error);
+                // Usar valores por defecto si hay error
+                pasajesConfig = [
+                    { valor: "40", texto: "Pasaje corto (40 Bs)" },
+                    { valor: "50", texto: "Pasaje intermedio (50 Bs)" },
+                    { valor: "60", texto: "Pasaje largo (60 Bs)" }
+                ];
+                actualizarOpcionesDePasajes();
+                
+                // Mostrar mensaje de advertencia
+                setTimeout(() => {
+                    console.warn('Usando configuración por defecto debido a error:', error.message);
+                }, 1000);
+                
+            } finally {
+                // Ocultar spinner y mostrar formulario
+                loadingSpinner.style.display = 'none';
+                paymentForm.style.display = 'block';
+            }
+        }
+        
+        // Función para actualizar las opciones de pasajes en el formulario
+        function actualizarOpcionesDePasajes() {
+            // Limpiar opciones actuales
+            amountSelect.innerHTML = '<option value="">Seleccione el tipo de pasaje</option>';
+            amountOptionsContainer.innerHTML = '';
+            
+            // Agregar nuevas opciones
+            pasajesConfig.forEach(pasaje => {
+                // Agregar al select
+                const option = document.createElement('option');
+                option.value = pasaje.valor;
+                option.textContent = pasaje.texto;
+                amountSelect.appendChild(option);
+                
+                // Agregar a la visualización
+                const amountOption = document.createElement('div');
+                amountOption.className = 'amount-option';
+                amountOption.dataset.value = pasaje.valor;
+                
+                const amountType = document.createElement('span');
+                amountType.className = 'amount-type';
+                amountType.textContent = pasaje.texto.split('(')[0].trim();
+                
+                const amountValue = document.createElement('span');
+                amountValue.className = 'amount-value';
+                
+                // Extraer el valor numérico del texto
+                const match = pasaje.texto.match(/(\d+)\s*Bs/);
+                if (match) {
+                    amountValue.textContent = `${match[1]} Bs`;
+                } else {
+                    amountValue.textContent = `${pasaje.valor} Bs`;
+                }
+                
+                amountOption.appendChild(amountType);
+                amountOption.appendChild(amountValue);
+                amountOptionsContainer.appendChild(amountOption);
+            });
+            
+            // Agregar event listener para resaltar selección
+            agregarEventListenersPasajes();
+        }
+        
+        // Función para agregar event listeners a las opciones de pasaje
+        function agregarEventListenersPasajes() {
+            // Cuando se selecciona una opción en el select
+            amountSelect.addEventListener('change', function(e) {
+                if (e.target.value === '') {
+                    amountError.style.display = 'block';
+                } else {
+                    amountError.style.display = 'none';
+                }
+                
+                // Resaltar visualmente la opción seleccionada
+                const amountOptions = document.querySelectorAll('.amount-option');
+                const selectedValue = e.target.value;
+                
+                amountOptions.forEach(option => {
+                    if (option.dataset.value === selectedValue) {
+                        option.style.backgroundColor = '#e8f0fe';
+                        option.style.fontWeight = '600';
+                    } else {
+                        option.style.backgroundColor = '#f8f9fa';
+                        option.style.fontWeight = 'normal';
+                    }
+                });
+            });
+            
+            // Permitir hacer clic en las opciones visuales para seleccionar
+            document.querySelectorAll('.amount-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    amountSelect.value = value;
+                    amountSelect.dispatchEvent(new Event('change'));
+                });
+            });
+        }
         
         // Función para validar cédula
         function validateCedula(cedula) {
@@ -538,31 +682,6 @@
             } else {
                 bankError.style.display = 'none';
             }
-        });
-        
-        // Validación del monto
-        document.getElementById('amount').addEventListener('change', function(e) {
-            if (e.target.value === '') {
-                amountError.style.display = 'block';
-            } else {
-                amountError.style.display = 'none';
-            }
-            
-            // Resaltar visualmente la opción seleccionada
-            const amountOptions = document.querySelectorAll('.amount-option');
-            const selectedText = this.options[this.selectedIndex].text;
-            const selectedType = selectedText.split('(')[0].trim();
-            
-            amountOptions.forEach(option => {
-                const optionType = option.querySelector('.amount-type').textContent;
-                if (optionType === selectedType) {
-                    option.style.backgroundColor = '#e8f0fe';
-                    option.style.fontWeight = '600';
-                } else {
-                    option.style.backgroundColor = '#f8f9fa';
-                    option.style.fontWeight = 'normal';
-                }
-            });
         });
         
         // Cerrar formulario
@@ -671,61 +790,4 @@
                 monto_valor: amountValue
             };
             
-            try {
-                // Enviar datos a Google Sheets
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                // Mostrar modal de confirmación
-                confirmationModal.style.display = 'flex';
-                
-            } catch (error) {
-                console.error('Error al enviar:', error);
-                
-                // Determinar tipo de error
-                let errorMsg = 'Hubo un error al enviar el formulario. ';
-                
-                if (error.name === 'AbortError') {
-                    errorMsg += 'El servidor tardó demasiado en responder. ';
-                } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg += 'No se pudo conectar con el servidor. ';
-                } else {
-                    errorMsg += 'Error técnico: ' + error.message;
-                }
-                
-                errorMsg += 'Por favor intente nuevamente.';
-                
-                errorMessageElement.textContent = errorMsg;
-                errorModal.style.display = 'flex';
-                
-            } finally {
-                // Restablecer botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
-            }
-        });
-        
-        // Inicializar: resaltar la opción si hay una seleccionada
-        const initialAmount = document.getElementById('amount').value;
-        if (initialAmount) {
-            document.getElementById('amount').dispatchEvent(new Event('change'));
-        }
-        
-        // Mostrar advertencia si la URL no está configurada
-        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
-            console.warn("ADVERTENCIA: La URL de Google Apps Script no está configurada.");
-            
-            // Mostrar mensaje discreto en consola
-            setTimeout(() => {
-                console.log("Recuerda configurar la URL de Google Apps Script en la línea 172 del código HTML.");
-            }, 1000);
-        }
-    </script>
-</body>
-</html>
+           
