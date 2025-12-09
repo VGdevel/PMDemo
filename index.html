@@ -537,7 +537,7 @@
     
 <script>
     // URL de tu Google Apps Script (REEMPLAZA ESTA URL)
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
+    const GOOGLE_SCRIPT_URL = "TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI";
     
     // Clave para el almacenamiento local
     const CACHE_KEY = 'registro_pago_cache';
@@ -648,9 +648,10 @@
     
     // =================== FUNCIONES DE VALIDACIÓN ===================
     
-    // Función para validar cédula
+    // Función para validar cédula (SOLO NÚMEROS - MODIFICADA)
     function validateCedula(cedula) {
-        const cedulaRegex = /^[VE]\d+$/;
+        // Solo números, entre 6 y 9 dígitos
+        const cedulaRegex = /^\d{6,9}$/;
         return cedulaRegex.test(cedula);
     }
     
@@ -869,9 +870,16 @@
         
         // =================== VALIDACIONES EN TIEMPO REAL ===================
         
-        // Validación en tiempo real para cédula
+        // Validación en tiempo real para cédula (SOLO NÚMEROS - CORREGIDA)
         document.getElementById('cedula').addEventListener('input', function(e) {
-            const value = e.target.value.toUpperCase();
+            // Permitir solo números
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // Limitar a 9 caracteres máximo (típico para cédulas venezolanas)
+            if (value.length > 9) {
+                value = value.substring(0, 9);
+            }
+            
             e.target.value = value;
             
             if (value === '') {
@@ -880,8 +888,9 @@
                 return;
             }
             
+            // Validar con la nueva función (solo números)
             if (!validateCedula(value)) {
-                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.textContent = 'La cédula debe contener solo números (entre 6 y 9 dígitos)';
                 cedulaError.style.display = 'block';
                 cedulaCacheIndicator.style.display = 'none';
             } else {
@@ -896,22 +905,29 @@
         // Validación en tiempo real para teléfono
         document.getElementById('telefono').addEventListener('input', function(e) {
             const value = e.target.value.replace(/\D/g, ''); // Solo números
-            e.target.value = value;
             
-            if (value === '') {
+            // Limitar a 11 caracteres máximo
+            let formattedValue = value;
+            if (value.length > 11) {
+                formattedValue = value.substring(0, 11);
+            }
+            
+            e.target.value = formattedValue;
+            
+            if (formattedValue === '') {
                 telefonoError.style.display = 'none';
                 telefonoCacheIndicator.style.display = 'none';
                 return;
             }
             
-            if (!validateTelefono(value)) {
-                telefonoError.textContent = 'El teléfono debe comenzar con 0 seguido de 10 números más (ej: 04141234567)';
+            if (!validateTelefono(formattedValue)) {
+                telefonoError.textContent = 'El teléfono debe comenzar con 0 y tener 11 dígitos (ej: 04141234567)';
                 telefonoError.style.display = 'block';
                 telefonoCacheIndicator.style.display = 'none';
             } else {
                 telefonoError.style.display = 'none';
                 // Mostrar indicador de cache cuando se ingresa un valor válido
-                if (cachedData.telefono && cachedData.telefono === value) {
+                if (cachedData.telefono && cachedData.telefono === formattedValue) {
                     telefonoCacheIndicator.style.display = 'flex';
                 }
             }
@@ -1009,9 +1025,9 @@
                 bankError.style.display = 'none';
             }
             
-            // Validar cédula
+            // Validar cédula (SOLO NÚMEROS - ACTUALIZADO)
             if (!validateCedula(cedula)) {
-                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.textContent = 'La cédula debe contener solo números (entre 6 y 9 dígitos)';
                 cedulaError.style.display = 'block';
                 isValid = false;
             } else {
@@ -1141,5 +1157,6 @@
         }
     });
 </script>
+    
 </body>
 </html>
