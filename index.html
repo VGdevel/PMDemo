@@ -535,208 +535,611 @@
         </div>
     </div>
     
-    <script>
-        // URL de tu Google Apps Script (REEMPLAZA ESTA URL)
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
-        
-        // Clave para el almacenamiento local
-        const CACHE_KEY = 'registro_pago_cache';
-        
-        // Elementos DOM
-        const closeFormBtn = document.getElementById('close-form-btn');
-        const paymentForm = document.getElementById('payment-form');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const errorModal = document.getElementById('error-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const errorMessageElement = document.getElementById('error-message');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        let amountSelect = document.getElementById('amount');
-        const amountOptionsContainer = document.getElementById('amount-options-container');
-        const refreshConfigBtn = document.getElementById('refresh-config-btn');
-        const clearCacheBtn = document.getElementById('clear-cache-btn');
-        const cedulaCacheIndicator = document.getElementById('cedula-cache-indicator');
-        const telefonoCacheIndicator = document.getElementById('telefono-cache-indicator');
-        
-        // Elementos de error
-        const bankError = document.getElementById('bank-error');
-        const cedulaError = document.getElementById('cedula-error');
-        const telefonoError = document.getElementById('telefono-error');
-        const referenceError = document.getElementById('reference-error');
-        const amountError = document.getElementById('amount-error');
-        
-        // Variables globales
-        let pasajesConfig = [];
-        let cachedData = {};
-        
-        // =================== SISTEMA DE CACHÉ ===================
-        
-        // Cargar datos del cache
-        function cargarCache() {
-            try {
-                const cache = localStorage.getItem(CACHE_KEY);
-                if (cache) {
-                    cachedData = JSON.parse(cache);
-                    console.log('Datos cargados del cache:', cachedData);
-                    return true;
-                }
-            } catch (error) {
-                console.error('Error cargando cache:', error);
+<script>
+    // URL de tu Google Apps Script (REEMPLAZA ESTA URL)
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobtn6425PuPvtaF4UtqfkMl_SpgdrSURYQ4Nse5kwHKzbReWczaIHaJcUDlzz6js/exec";
+    
+    // Clave para el almacenamiento local
+    const CACHE_KEY = 'registro_pago_cache';
+    
+    // Elementos DOM
+    const closeFormBtn = document.getElementById('close-form-btn');
+    const paymentForm = document.getElementById('payment-form');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const errorModal = document.getElementById('error-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMessageElement = document.getElementById('error-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    let amountSelect = document.getElementById('amount');
+    const amountOptionsContainer = document.getElementById('amount-options-container');
+    const refreshConfigBtn = document.getElementById('refresh-config-btn');
+    const clearCacheBtn = document.getElementById('clear-cache-btn');
+    const cedulaCacheIndicator = document.getElementById('cedula-cache-indicator');
+    const telefonoCacheIndicator = document.getElementById('telefono-cache-indicator');
+    
+    // Elementos de error
+    const bankError = document.getElementById('bank-error');
+    const cedulaError = document.getElementById('cedula-error');
+    const telefonoError = document.getElementById('telefono-error');
+    const referenceError = document.getElementById('reference-error');
+    const amountError = document.getElementById('amount-error');
+    
+    // Variables globales
+    let pasajesConfig = [];
+    let cachedData = {};
+    
+    // =================== SISTEMA DE CACHÉ ===================
+    
+    // Cargar datos del cache
+    function cargarCache() {
+        try {
+            const cache = localStorage.getItem(CACHE_KEY);
+            if (cache) {
+                cachedData = JSON.parse(cache);
+                console.log('Datos cargados del cache:', cachedData);
+                return true;
             }
-            return false;
+        } catch (error) {
+            console.error('Error cargando cache:', error);
         }
-        
-        // Guardar datos en el cache
-        function guardarCache() {
-            try {
-                // Obtener valores actuales
-                const cedula = document.getElementById('cedula').value.trim();
-                const telefono = document.getElementById('telefono').value.trim();
-                
-                // Solo guardar si tienen valores válidos
-                if (cedula && validateCedula(cedula)) {
-                    cachedData.cedula = cedula;
-                }
-                
-                if (telefono && validateTelefono(telefono)) {
-                    cachedData.telefono = telefono;
-                }
-                
-                // Guardar en localStorage
-                localStorage.setItem(CACHE_KEY, JSON.stringify(cachedData));
-                console.log('Datos guardados en cache:', cachedData);
-            } catch (error) {
-                console.error('Error guardando cache:', error);
-            }
-        }
-        
-        // Aplicar datos del cache a los campos
-        function aplicarCache() {
-            if (cachedData.cedula) {
-                document.getElementById('cedula').value = cachedData.cedula;
-                cedulaCacheIndicator.style.display = 'flex';
-                console.log('Cédula cargada desde cache:', cachedData.cedula);
+        return false;
+    }
+    
+    // Guardar datos en el cache
+    function guardarCache() {
+        try {
+            // Obtener valores actuales
+            const cedula = document.getElementById('cedula').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            
+            // Solo guardar si tienen valores válidos
+            if (cedula && validateCedula(cedula)) {
+                cachedData.cedula = cedula;
             }
             
-            if (cachedData.telefono) {
-                document.getElementById('telefono').value = cachedData.telefono;
-                telefonoCacheIndicator.style.display = 'flex';
-                console.log('Teléfono cargado desde cache:', cachedData.telefono);
+            if (telefono && validateTelefono(telefono)) {
+                cachedData.telefono = telefono;
             }
+            
+            // Guardar en localStorage
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cachedData));
+            console.log('Datos guardados en cache:', cachedData);
+        } catch (error) {
+            console.error('Error guardando cache:', error);
+        }
+    }
+    
+    // Aplicar datos del cache a los campos
+    function aplicarCache() {
+        if (cachedData.cedula) {
+            document.getElementById('cedula').value = cachedData.cedula;
+            cedulaCacheIndicator.style.display = 'flex';
+            console.log('Cédula cargada desde cache:', cachedData.cedula);
         }
         
-        // Limpiar cache
-        function limpiarCache() {
-            try {
-                localStorage.removeItem(CACHE_KEY);
-                cachedData = {};
-                cedulaCacheIndicator.style.display = 'none';
-                telefonoCacheIndicator.style.display = 'none';
-                document.getElementById('cedula').value = '';
-                document.getElementById('telefono').value = '';
-                
-                // Mostrar confirmación
-                errorMessageElement.textContent = 'Datos guardados eliminados correctamente.';
-                errorModal.style.display = 'flex';
-                
-                console.log('Cache limpiado');
-            } catch (error) {
-                console.error('Error limpiando cache:', error);
-            }
+        if (cachedData.telefono) {
+            document.getElementById('telefono').value = cachedData.telefono;
+            telefonoCacheIndicator.style.display = 'flex';
+            console.log('Teléfono cargado desde cache:', cachedData.telefono);
         }
-        
-        // =================== FUNCIONES DEL FORMULARIO ===================
-        
-        // Función para cargar configuración desde Google Sheets
-        async function cargarConfiguracion(forceReload = false) {
-            try {
-                // Mostrar spinner
-                loadingSpinner.style.display = 'block';
-                amountSelect.disabled = true;
-                amountSelect.innerHTML = '<option value="">Cargando tipos de pasaje...</option>';
-                amountOptionsContainer.innerHTML = '<p style="color: #666; font-style: italic;">Cargando opciones de pasaje...</p>';
-                
-                // Obtener configuración desde Google Apps Script
-                const configUrl = `${GOOGLE_SCRIPT_URL}?action=config&t=${Date.now()}`;
-                const response = await fetch(configUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.config && data.config.pasajes) {
-                    pasajesConfig = data.config.pasajes;
-                    actualizarOpcionesDePasajes();
-                } else {
-                    throw new Error(`Formato de configuración inválido: ${data.error || 'Sin detalles'}`);
-                }
-                
-            } catch (error) {
-                console.error('Error cargando configuración:', error);
-                
-                // Usar valores por defecto si hay error
-                pasajesConfig = [
-                    { valor: "40", texto: "Pasaje corto (40 Bs)" },
-                    { valor: "50", texto: "Pasaje intermedio (50 Bs)" },
-                    { valor: "60", texto: "Pasaje largo (60 Bs)" }
-                ];
+    }
+    
+    // Limpiar cache
+    function limpiarCache() {
+        try {
+            localStorage.removeItem(CACHE_KEY);
+            cachedData = {};
+            cedulaCacheIndicator.style.display = 'none';
+            telefonoCacheIndicator.style.display = 'none';
+            document.getElementById('cedula').value = '';
+            document.getElementById('telefono').value = '';
+            
+            // Mostrar confirmación
+            errorMessageElement.textContent = 'Datos guardados eliminados correctamente.';
+            errorModal.style.display = 'flex';
+            
+            console.log('Cache limpiado');
+        } catch (error) {
+            console.error('Error limpiando cache:', error);
+        }
+    }
+    
+    // =================== FUNCIONES DE VALIDACIÓN ===================
+    
+    // Función para validar cédula
+    function validateCedula(cedula) {
+        const cedulaRegex = /^[VE]\d+$/;
+        return cedulaRegex.test(cedula);
+    }
+    
+    // Función para validar teléfono
+    function validateTelefono(telefono) {
+        const telefonoRegex = /^0[0-9]{10}$/;
+        return telefonoRegex.test(telefono);
+    }
+    
+    // Función para validar referencia
+    function validateReference(reference) {
+        const referenceRegex = /^\d+$/;
+        return referenceRegex.test(reference);
+    }
+    
+    // =================== FUNCIONES DEL FORMULARIO ===================
+    
+    // Función para cargar configuración desde Google Sheets
+    async function cargarConfiguracion(forceReload = false) {
+        try {
+            // Mostrar spinner
+            loadingSpinner.style.display = 'block';
+            amountSelect.disabled = true;
+            amountSelect.innerHTML = '<option value="">Cargando tipos de pasaje...</option>';
+            amountOptionsContainer.innerHTML = '<p style="color: #666; font-style: italic;">Cargando opciones de pasaje...</p>';
+            
+            // Obtener configuración desde Google Apps Script
+            const configUrl = `${GOOGLE_SCRIPT_URL}?action=config&t=${Date.now()}`;
+            const response = await fetch(configUrl);
+            
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.config && data.config.pasajes) {
+                pasajesConfig = data.config.pasajes;
                 actualizarOpcionesDePasajes();
-                
-            } finally {
-                // Ocultar spinner
-                loadingSpinner.style.display = 'none';
-                amountSelect.disabled = false;
+            } else {
+                throw new Error(`Formato de configuración inválido: ${data.error || 'Sin detalles'}`);
             }
+            
+        } catch (error) {
+            console.error('Error cargando configuración:', error);
+            
+            // Usar valores por defecto si hay error
+            pasajesConfig = [
+                { valor: "40", texto: "Pasaje corto (40 Bs)" },
+                { valor: "50", texto: "Pasaje intermedio (50 Bs)" },
+                { valor: "60", texto: "Pasaje largo (60 Bs)" }
+            ];
+            actualizarOpcionesDePasajes();
+            
+            // Mostrar error solo si es forceReload
+            if (forceReload) {
+                errorMessageElement.textContent = `Error cargando configuración: ${error.message}`;
+                errorModal.style.display = 'flex';
+            }
+            
+        } finally {
+            // Ocultar spinner
+            loadingSpinner.style.display = 'none';
+            amountSelect.disabled = false;
+        }
+    }
+    
+    // Función para actualizar las opciones de pasajes en el formulario
+    function actualizarOpcionesDePasajes() {
+        console.log('Actualizando opciones de pasajes. Total:', pasajesConfig.length);
+        
+        // Limpiar opciones actuales
+        amountSelect.innerHTML = '<option value="">Seleccione el tipo de pasaje</option>';
+        amountOptionsContainer.innerHTML = '';
+        
+        // Verificar si hay pasajes configurados
+        if (!pasajesConfig || pasajesConfig.length === 0) {
+            amountSelect.innerHTML = '<option value="">No hay tipos de pasaje configurados</option>';
+            amountOptionsContainer.innerHTML = '<p style="color: #d32f2f; font-style: italic;">Error: No hay tipos de pasaje configurados</p>';
+            return;
         }
         
-        // Función para actualizar las opciones de pasajes en el formulario
-        function actualizarOpcionesDePasajes() {
-            // Limpiar opciones actuales
-            amountSelect.innerHTML = '<option value="">Seleccione el tipo de pasaje</option>';
-            amountOptionsContainer.innerHTML = '';
-            
-            // Verificar si hay pasajes configurados
-            if (!pasajesConfig || pasajesConfig.length === 0) {
-                amountSelect.innerHTML = '<option value="">No hay tipos de pasaje configurados</option>';
-                amountOptionsContainer.innerHTML = '<p style="color: #d32f2f; font-style: italic;">Error: No hay tipos de pasaje configurados</p>';
+        // Agregar nuevas opciones
+        pasajesConfig.forEach((pasaje, index) => {
+            // Validar que el pasaje tenga los datos necesarios
+            if (!pasaje.valor || !pasaje.texto) {
+                console.warn('Pasaje inválido:', pasaje);
                 return;
             }
             
-            // Agregar nuevas opciones
-            pasajesConfig.forEach((pasaje, index) => {
-                // Validar que el pasaje tenga los datos necesarios
-                if (!pasaje.valor || !pasaje.texto) {
-                    console.warn('Pasaje inválido:', pasaje);
-                    return;
+            // Agregar al select
+            const option = document.createElement('option');
+            option.value = pasaje.valor;
+            option.textContent = pasaje.texto;
+            amountSelect.appendChild(option);
+            
+            // Agregar a la visualización
+            const amountOption = document.createElement('div');
+            amountOption.className = 'amount-option';
+            amountOption.dataset.value = pasaje.valor;
+            amountOption.title = `Haz clic para seleccionar: ${pasaje.texto}`;
+            
+            const amountType = document.createElement('span');
+            amountType.className = 'amount-type';
+            // Extraer solo el nombre del pasaje (antes del paréntesis)
+            const nombrePasaje = pasaje.texto.split('(')[0].trim();
+            amountType.textContent = nombrePasaje;
+            
+            const amountValue = document.createElement('span');
+            amountValue.className = 'amount-value';
+            
+            // Extraer el valor numérico del texto
+            const match = pasaje.texto.match(/(\d+)\s*Bs/);
+            if (match) {
+                amountValue.textContent = `${match[1]} Bs`;
+            } else {
+                // Si no encuentra "Bs" en el texto, usar el valor directamente
+                amountValue.textContent = `${pasaje.valor} Bs`;
+            }
+            
+            amountOption.appendChild(amountType);
+            amountOption.appendChild(amountValue);
+            amountOptionsContainer.appendChild(amountOption);
+        });
+        
+        // Agregar event listener para resaltar selección
+        agregarEventListenersPasajes();
+        
+        // Seleccionar la primera opción por defecto si hay opciones
+        if (pasajesConfig.length > 0) {
+            setTimeout(() => {
+                amountSelect.value = pasajesConfig[0].valor;
+                amountSelect.dispatchEvent(new Event('change'));
+            }, 100);
+        }
+    }
+    
+    // Función para agregar event listeners a las opciones de pasaje
+    function agregarEventListenersPasajes() {
+        // Primero, remover event listeners anteriores creando un nuevo select
+        const oldSelect = amountSelect;
+        const newSelect = oldSelect.cloneNode(true);
+        oldSelect.parentNode.replaceChild(newSelect, oldSelect);
+        
+        // Actualizar la referencia
+        amountSelect = newSelect;
+        
+        // Cuando se selecciona una opción en el select
+        amountSelect.addEventListener('change', function(e) {
+            const selectedValue = e.target.value;
+            
+            if (selectedValue === '') {
+                amountError.style.display = 'block';
+            } else {
+                amountError.style.display = 'none';
+            }
+            
+            // Resaltar visualmente la opción seleccionada
+            const amountOptions = document.querySelectorAll('.amount-option');
+            
+            amountOptions.forEach(option => {
+                if (option.dataset.value === selectedValue) {
+                    option.style.backgroundColor = '#e8f0fe';
+                    option.style.fontWeight = '600';
+                    option.style.borderLeftColor = '#0C1B5A';
+                } else {
+                    option.style.backgroundColor = '#f8f9fa';
+                    option.style.fontWeight = 'normal';
+                    option.style.borderLeftColor = '#19378A';
+                }
+            });
+        });
+        
+        // Permitir hacer clic en las opciones visuales para seleccionar
+        document.querySelectorAll('.amount-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const value = this.dataset.value;
+                amountSelect.value = value;
+                amountSelect.dispatchEvent(new Event('change'));
+            });
+        });
+    }
+    
+    // =================== INICIALIZACIÓN DEL FORMULARIO ===================
+    
+    // Inicializar formulario
+    function inicializarFormulario() {
+        console.log('Inicializando formulario...');
+        
+        // 1. Cargar cache
+        cargarCache();
+        
+        // 2. Aplicar datos del cache
+        aplicarCache();
+        
+        // 3. Configurar valores por defecto mientras se carga la configuración
+        pasajesConfig = [
+            { valor: "40", texto: "Pasaje corto (40 Bs)" },
+            { valor: "50", texto: "Pasaje intermedio (50 Bs)" },
+            { valor: "60", texto: "Pasaje largo (60 Bs)" }
+        ];
+        actualizarOpcionesDePasajes();
+        
+        // 4. Botón para recargar configuración
+        refreshConfigBtn.addEventListener('click', function() {
+            console.log('Recargando configuración manualmente...');
+            cargarConfiguracion(true);
+        });
+        
+        // 5. Botón para limpiar cache
+        clearCacheBtn.addEventListener('click', function() {
+            if (confirm('¿Está seguro de que desea eliminar sus datos guardados (cédula y teléfono)?')) {
+                limpiarCache();
+            }
+        });
+        
+        // =================== VALIDACIONES EN TIEMPO REAL ===================
+        
+        // Validación en tiempo real para cédula
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            const value = e.target.value.toUpperCase();
+            e.target.value = value;
+            
+            if (value === '') {
+                cedulaError.style.display = 'none';
+                cedulaCacheIndicator.style.display = 'none';
+                return;
+            }
+            
+            if (!validateCedula(value)) {
+                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.style.display = 'block';
+                cedulaCacheIndicator.style.display = 'none';
+            } else {
+                cedulaError.style.display = 'none';
+                // Mostrar indicador de cache cuando se ingresa un valor válido
+                if (cachedData.cedula && cachedData.cedula === value) {
+                    cedulaCacheIndicator.style.display = 'flex';
+                }
+            }
+        });
+        
+        // Validación en tiempo real para teléfono
+        document.getElementById('telefono').addEventListener('input', function(e) {
+            const value = e.target.value.replace(/\D/g, ''); // Solo números
+            e.target.value = value;
+            
+            if (value === '') {
+                telefonoError.style.display = 'none';
+                telefonoCacheIndicator.style.display = 'none';
+                return;
+            }
+            
+            if (!validateTelefono(value)) {
+                telefonoError.textContent = 'El teléfono debe comenzar con 0 seguido de 10 números más (ej: 04141234567)';
+                telefonoError.style.display = 'block';
+                telefonoCacheIndicator.style.display = 'none';
+            } else {
+                telefonoError.style.display = 'none';
+                // Mostrar indicador de cache cuando se ingresa un valor válido
+                if (cachedData.telefono && cachedData.telefono === value) {
+                    telefonoCacheIndicator.style.display = 'flex';
+                }
+            }
+        });
+        
+        // Validación en tiempo real para referencia
+        document.getElementById('reference').addEventListener('input', function(e) {
+            const value = e.target.value;
+            
+            if (value === '') {
+                referenceError.style.display = 'none';
+                return;
+            }
+            
+            if (!validateReference(value)) {
+                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+                referenceError.style.display = 'block';
+            } else {
+                referenceError.style.display = 'none';
+            }
+        });
+        
+        // Validación del banco
+        document.getElementById('bank').addEventListener('change', function(e) {
+            if (e.target.value === '') {
+                bankError.style.display = 'block';
+            } else {
+                bankError.style.display = 'none';
+            }
+        });
+        
+        // =================== EVENT LISTENERS ADICIONALES ===================
+        
+        // Cerrar formulario
+        closeFormBtn.addEventListener('click', function() {
+            if (confirm('¿Está seguro de que desea cerrar el formulario? Los datos no guardados se perderán.')) {
+                paymentForm.reset();
+                // Restaurar datos del cache después de reset
+                aplicarCache();
+                alert('Formulario cerrado. Puede volver a abrirlo recargando la página.');
+            }
+        });
+        
+        // Cerrar modal de éxito
+        closeModalBtn.addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+            
+            // Guardar datos en cache antes de resetear
+            guardarCache();
+            
+            // Resetear formulario pero mantener cédula y teléfono del cache
+            document.getElementById('bank').value = '';
+            document.getElementById('reference').value = '';
+            
+            // Restaurar selección por defecto en monto
+            if (pasajesConfig.length > 0) {
+                amountSelect.value = pasajesConfig[0].valor;
+                amountSelect.dispatchEvent(new Event('change'));
+            }
+            
+            // Resetear todos los errores
+            bankError.style.display = 'none';
+            cedulaError.style.display = 'none';
+            telefonoError.style.display = 'none';
+            referenceError.style.display = 'none';
+            amountError.style.display = 'none';
+        });
+        
+        // Cerrar modal de error
+        closeErrorModalBtn.addEventListener('click', function() {
+            errorModal.style.display = 'none';
+        });
+        
+        // =================== ENVÍO DEL FORMULARIO ===================
+        
+        // Enviar formulario a Google Sheets
+        paymentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validar todos los campos antes de enviar
+            const bank = document.getElementById('bank').value;
+            const cedula = document.getElementById('cedula').value;
+            const telefono = document.getElementById('telefono').value;
+            const reference = document.getElementById('reference').value;
+            const amountValue = amountSelect.value;
+            const amountText = amountSelect.options[amountSelect.selectedIndex].text;
+            
+            let isValid = true;
+            
+            // Validar banco
+            if (bank === '') {
+                bankError.style.display = 'block';
+                isValid = false;
+            } else {
+                bankError.style.display = 'none';
+            }
+            
+            // Validar cédula
+            if (!validateCedula(cedula)) {
+                cedulaError.textContent = 'La cédula debe comenzar con V o E seguido de números (sin puntos ni comas)';
+                cedulaError.style.display = 'block';
+                isValid = false;
+            } else {
+                cedulaError.style.display = 'none';
+            }
+            
+            // Validar teléfono
+            if (!validateTelefono(telefono)) {
+                telefonoError.textContent = 'El teléfono debe comenzar con 0 seguido de 10 números más (ej: 04141234567)';
+                telefonoError.style.display = 'block';
+                isValid = false;
+            } else {
+                telefonoError.style.display = 'none';
+            }
+            
+            // Validar referencia
+            if (!validateReference(reference)) {
+                referenceError.textContent = 'La referencia debe contener solo números (sin puntos ni comas)';
+                referenceError.style.display = 'block';
+                isValid = false;
+            } else {
+                referenceError.style.display = 'none';
+            }
+            
+            // Validar monto
+            if (amountValue === '') {
+                amountError.style.display = 'block';
+                isValid = false;
+            } else {
+                amountError.style.display = 'none';
+            }
+            
+            if (!isValid) {
+                errorMessageElement.textContent = 'Por favor corrija los errores en el formulario antes de enviar.';
+                errorModal.style.display = 'flex';
+                return;
+            }
+            
+            // Verificar que la URL de Google Script esté configurada
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+                errorMessageElement.textContent = 'Error: La URL de Google Apps Script no está configurada correctamente. Por favor contacte al administrador.';
+                errorModal.style.display = 'flex';
+                return;
+            }
+            
+            // Deshabilitar botón de envío
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            
+            // Guardar datos en cache
+            guardarCache();
+            
+            // Preparar datos para enviar
+            const formData = {
+                banco: bank,
+                cedula: cedula,
+                telefono: telefono,
+                referencia: reference,
+                monto: amountText,
+                monto_valor: amountValue
+            };
+            
+            console.log('Enviando datos:', formData);
+            
+            try {
+                // Enviar datos a Google Sheets
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                // Mostrar modal de confirmación
+                confirmationModal.style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error al enviar:', error);
+                
+                // Determinar tipo de error
+                let errorMsg = 'Hubo un error al enviar el formulario. ';
+                
+                if (error.name === 'AbortError') {
+                    errorMsg += 'El servidor tardó demasiado en responder. ';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMsg += 'No se pudo conectar con el servidor. ';
+                } else {
+                    errorMsg += 'Error técnico: ' + error.message;
                 }
                 
-                // Agregar al select
-                const option = document.createElement('option');
-                option.value = pasaje.valor;
-                option.textContent = pasaje.texto;
-                amountSelect.appendChild(option);
+                errorMsg += 'Por favor intente nuevamente.';
                 
-                // Agregar a la visualización
-                const amountOption = document.createElement('div');
-                amountOption.className = 'amount-option';
-                amountOption.dataset.value = pasaje.valor;
-                amountOption.title = `Haz clic para seleccionar: ${pasaje.texto}`;
+                errorMessageElement.textContent = errorMsg;
+                errorModal.style.display = 'flex';
                 
-                const amountType = document.createElement('span');
-                amountType.className = 'amount-type';
-                // Extraer solo el nombre del pasaje (antes del paréntesis)
-                const nombrePasaje = pasaje.texto.split('(')[0].trim();
-                amountType.textContent = nombrePasaje;
-                
-                const amountValue = document.createElement('span');
-                amountValue.className = 'amount-value';
-                
-                // Extraer el valor numérico del texto
-                const match = pasaje.texto.match(/(\d+)\s*Bs/);
-                if (match) {
-                    amountValue.textContent = `${match[1]} Bs`;
-                } else {
-                    // Si no encuentra "Bs" en el texto, usar el valor directamente
+            } finally {
+                // Restablecer botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Aceptar y Registrar';
+            }
+        });
+        
+        console.log('Formulario inicializado exitosamente');
+    }
+    
+    // =================== CARGA DE LA PÁGINA ===================
+    
+    // Cuando la página se carga completamente
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Página cargada');
+        console.log('URL de script:', GOOGLE_SCRIPT_URL);
+        
+        // 1. Inicializar el formulario con valores por defecto
+        inicializarFormulario();
+        
+        // 2. Intentar cargar configuración dinámica
+        if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes("TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI")) {
+            console.log('Iniciando carga de configuración...');
+            cargarConfiguracion();
+        } else {
+            const errorMsg = 'URL de Google Apps Script no configurada. Usando valores por defecto.';
+            console.warn(errorMsg);
+            errorMessageElement.textContent = errorMsg;
+            errorModal.style.display = 'flex';
+        }
+    });
+</script>
+</body>
+</html>
